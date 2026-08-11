@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* ===== CSS (full styles – same as before) ===== */
+    /* ===== CSS (same as before, with additions for file input styling) ===== */
     :root {
       --kenya-green: #1a5c2a;
       --kenya-red: #a81010;
@@ -102,7 +102,7 @@
     .login-footer-actions .register-link:hover { opacity: 0.8; }
     .login-footer-actions .demo-hint { font-size: 11px; color: rgba(255,255,255,0.3); cursor: pointer; }
 
-    /* ===== REGISTER MODAL ===== */
+    /* ===== REGISTER MODAL (with phone and file uploads) ===== */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 99999;
@@ -142,6 +142,58 @@
     }
     .modal-box .key-display .copy-btn {
       color: var(--kenya-green); font-size: 18px; cursor: pointer;
+    }
+    .modal-box .file-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .modal-box .file-input-wrapper input[type="file"] {
+      flex: 1;
+      padding: 8px;
+    }
+    .modal-box .file-input-wrapper .preview {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid var(--border-light);
+    }
+    .modal-box .required-star { color: var(--kenya-red); margin-left: 4px; }
+
+    /* ===== TERMS & PRIVACY MODAL ===== */
+    .terms-modal .modal-box { max-width: 720px; }
+    .terms-modal .modal-box .legal-content {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 16px;
+      background: #f9f9f9;
+      border-radius: var(--radius-sm);
+      margin: 16px 0;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text-secondary);
+    }
+    .terms-modal .modal-box .legal-content h4 { color: var(--kenya-green); margin: 12px 0 6px; }
+    .terms-modal .modal-box .legal-content p { margin-bottom: 8px; }
+    .terms-modal .modal-box .accept-checkboxes {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .terms-modal .modal-box .accept-checkboxes label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .terms-modal .modal-box .accept-checkboxes input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--kenya-green);
     }
 
     /* ===== MAIN APP ===== */
@@ -393,17 +445,60 @@
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 500px) { .form-row { grid-template-columns: 1fr; } }
 
-    .users-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+    /* Users grid - enhanced for avatars */
+    .users-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
     .user-card {
-      background: var(--bg-card); border-radius: var(--radius-sm); padding: 18px 20px;
+      background: var(--bg-card); border-radius: var(--radius-sm); padding: 16px 18px;
       border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);
-      display: flex; align-items: center; justify-content: space-between; transition: var(--transition);
+      display: flex; align-items: center; gap: 14px;
+      transition: var(--transition);
     }
     .user-card:hover { box-shadow: var(--shadow-md); }
+    .user-card .user-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--bg-main);
+      border: 2px solid var(--border-light);
+      flex-shrink: 0;
+    }
+    .user-card .user-avatar-placeholder {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--kenya-green);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .user-card .user-info {
+      flex: 1;
+      min-width: 0;
+    }
     .user-card .user-info .u-name { font-weight: 600; font-size: 15px; }
     .user-card .user-info .u-email { font-size: 13px; color: var(--text-muted); }
-    .user-card .user-info .u-role { font-size: 12px; font-weight: 500; text-transform: capitalize; color: var(--kenya-green); }
-    .user-card .user-actions { display: flex; gap: 6px; }
+    .user-card .user-info .u-role {
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: capitalize;
+      color: var(--kenya-green);
+    }
+    .user-card .user-info .u-phone {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .user-card .user-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-end;
+    }
+    .user-card .user-actions .btn-sm { padding: 2px 10px; font-size: 11px; }
 
     .toast {
       position: fixed; bottom: 30px; right: 30px; background: var(--kenya-black);
@@ -432,8 +527,7 @@
       margin-top: 16px;
     }
     .help-card {
-      background: var(--bg-card);
-      border-radius: var(--radius);
+      background: var(--bg-card); border-radius: var(--radius);
       padding: 24px;
       border: 1px solid var(--border-light);
       box-shadow: var(--shadow-sm);
@@ -482,11 +576,11 @@
       .header-right .date-badge { display: none; }
       .stats-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
       .stat-card .stat-value { font-size: 24px; }
-      .buildings-grid, .units-grid { grid-template-columns: 1fr 1fr; }
+      .buildings-grid, .units-grid, .users-grid { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 500px) {
       .stats-grid { grid-template-columns: 1fr; }
-      .buildings-grid, .units-grid { grid-template-columns: 1fr; }
+      .buildings-grid, .units-grid, .users-grid { grid-template-columns: 1fr; }
       .header-right .profile .name, .header-right .profile .role { display: none; }
       .header-right .profile { padding: 4px; }
       .login-container { padding: 32px 20px 28px; margin: 16px; }
@@ -545,16 +639,19 @@
     </div>
   </div>
 
-  <!-- ===== REGISTER MODAL ===== -->
+  <!-- ===== REGISTER MODAL (now includes phone, photo, ID) ===== -->
   <div class="modal-overlay" id="registerModal">
     <div class="modal-box">
       <button class="modal-close" id="closeRegisterBtn">&times;</button>
       <h2><i class="fas fa-user-plus" style="color:var(--kenya-green);"></i> Register</h2>
-      <p class="modal-sub">Owners provide company details. Caretakers need a sign‑up key from the owner.</p>
+      <p class="modal-sub">Owners provide company details. Caretakers need a sign‑up key. Tenants must provide phone and ID.</p>
       <form id="registerForm">
         <div class="form-group"><label>Full Name</label><input type="text" id="regName" placeholder="e.g. Jane Muthoni" required /></div>
         <div class="form-group"><label>Email Address</label><input type="email" id="regEmail" placeholder="e.g. jane@domain.com" required /></div>
         <div class="form-group"><label>Password</label><input type="password" id="regPassword" placeholder="Min 6 characters" required minlength="6" /></div>
+        <div class="form-group"><label>Phone Number <span class="required-star" id="regPhoneStar">*</span></label>
+          <input type="tel" id="regPhone" placeholder="254712345678" />
+        </div>
         <div class="form-group"><label>I am a...</label>
           <select id="regRole">
             <option value="owner">🏢 Owner / Company</option>
@@ -572,11 +669,52 @@
           <input type="text" id="regCompanyName" placeholder="e.g. Muthoni Properties Ltd" />
         </div>
         <div class="form-group hidden" id="regCodeGroup">
-          <label>Company Code (for caretakers)</label>
-          <input type="text" id="regCompanyCode" placeholder="Enter the sign‑up key provided by your owner" />
+          <label>Sign‑up Key (for caretakers only)</label>
+          <input type="text" id="regCompanyCode" placeholder="Enter the key provided by your owner" />
+        </div>
+        <!-- Tenant-specific fields -->
+        <div class="form-group" id="regIdGroup">
+          <label>ID Document (Photo) <span class="required-star" id="regIdStar">*</span></label>
+          <div class="file-input-wrapper">
+            <input type="file" id="regIdFile" accept="image/*" />
+            <small style="color:var(--text-muted); font-size:11px;">Upload a photo of your national ID or passport</small>
+          </div>
+        </div>
+        <div class="form-group" id="regPhotoGroup">
+          <label>Profile Photo (optional)</label>
+          <div class="file-input-wrapper">
+            <input type="file" id="regPhotoFile" accept="image/*" />
+          </div>
         </div>
         <button type="submit" class="btn btn-primary w-full"><i class="fas fa-paper-plane"></i> Register</button>
       </form>
+    </div>
+  </div>
+
+  <!-- ===== TERMS & PRIVACY ACCEPTANCE MODAL ===== -->
+  <div class="modal-overlay terms-modal" id="termsModal">
+    <div class="modal-box">
+      <h2><i class="fas fa-file-contract" style="color:var(--kenya-gold);"></i> Terms &amp; Privacy</h2>
+      <p class="modal-sub">Please review and accept our Terms of Service and Privacy Policy to continue.</p>
+      <div class="legal-content" id="termsContent">
+        <h4>Terms of Service</h4>
+        <p><strong>1. Acceptance of Terms</strong><br>By using RentalPro, you agree to these terms. If you do not agree, do not use the app.</p>
+        <p><strong>2. User Accounts</strong><br>You are responsible for maintaining the confidentiality of your account credentials. You agree to notify us immediately of any unauthorized use.</p>
+        <p><strong>3. Property Management</strong><br>RentalPro provides tools for property owners, caretakers, and tenants. All data entered is your responsibility. We are not liable for any errors or omissions.</p>
+        <p><strong>4. Payments</strong><br>Rent payments via M‑PESA are processed through third‑party services. We do not store your payment details.</p>
+        <p><strong>5. Termination</strong><br>We reserve the right to suspend or terminate your account if you violate these terms.</p>
+        <h4>Privacy Policy</h4>
+        <p><strong>1. Data Collection</strong><br>We collect personal information (name, email, phone, photos, ID) that you provide. This data is used solely for property management purposes.</p>
+        <p><strong>2. Data Storage</strong><br>Your data is stored securely on Supabase. We do not share your data with third parties except as required by law.</p>
+        <p><strong>3. Security</strong><br>We implement reasonable security measures to protect your data. However, no system is 100% secure.</p>
+        <p><strong>4. Your Rights</strong><br>You may request to view, update, or delete your data at any time by contacting the property owner.</p>
+      </div>
+      <div class="accept-checkboxes">
+        <label><input type="checkbox" id="acceptTerms" /> I accept the <strong>Terms of Service</strong></label>
+        <label><input type="checkbox" id="acceptPrivacy" /> I accept the <strong>Privacy Policy</strong></label>
+      </div>
+      <button class="btn btn-primary w-full" id="acceptTermsBtn" disabled><i class="fas fa-check"></i> Accept &amp; Continue</button>
+      <div id="termsError" style="color:var(--kenya-red); font-size:13px; text-align:center; margin-top:8px;"></div>
     </div>
   </div>
 
@@ -712,7 +850,7 @@
         </div>
       </section>
 
-      <!-- VIEW: USERS (Admin only) -->
+      <!-- VIEW: USERS (Admin/Caretaker) -->
       <section class="view" id="view-users">
         <div class="section-header" style="margin-top:4px;">
           <h3><i class="fas fa-users"></i> Team Members</h3>
@@ -730,13 +868,36 @@
         <div id="reportsContainer"></div>
       </section>
 
-      <!-- ===== NEW: HELP / INSTRUCTIONS VIEW ===== -->
+      <!-- ===== HELP / INSTRUCTIONS VIEW ===== -->
       <section class="view" id="view-help">
         <div class="section-header" style="margin-top:4px;">
           <h3><i class="fas fa-question-circle"></i> Help &amp; Instructions</h3>
           <span style="font-size:13px; color:var(--text-muted);">Learn how to use RentalPro</span>
         </div>
         <div id="helpContent"></div>
+      </section>
+
+      <!-- ===== LEGAL VIEW (Terms & Privacy) ===== -->
+      <section class="view" id="view-legal">
+        <div class="section-header" style="margin-top:4px;">
+          <h3><i class="fas fa-gavel"></i> Terms &amp; Privacy</h3>
+          <span style="font-size:13px; color:var(--text-muted);">Our legal policies</span>
+        </div>
+        <div style="background:var(--bg-card); border-radius:var(--radius); padding:28px; border:1px solid var(--border-light);">
+          <div class="legal-content" style="max-height:none; background:transparent; padding:0;">
+            <h4>Terms of Service</h4>
+            <p><strong>1. Acceptance of Terms</strong><br>By using RentalPro, you agree to these terms. If you do not agree, do not use the app.</p>
+            <p><strong>2. User Accounts</strong><br>You are responsible for maintaining the confidentiality of your account credentials. You agree to notify us immediately of any unauthorized use.</p>
+            <p><strong>3. Property Management</strong><br>RentalPro provides tools for property owners, caretakers, and tenants. All data entered is your responsibility. We are not liable for any errors or omissions.</p>
+            <p><strong>4. Payments</strong><br>Rent payments via M‑PESA are processed through third‑party services. We do not store your payment details.</p>
+            <p><strong>5. Termination</strong><br>We reserve the right to suspend or terminate your account if you violate these terms.</p>
+            <h4 style="margin-top:16px;">Privacy Policy</h4>
+            <p><strong>1. Data Collection</strong><br>We collect personal information (name, email, phone, photos, ID) that you provide. This data is used solely for property management purposes.</p>
+            <p><strong>2. Data Storage</strong><br>Your data is stored securely on Supabase. We do not share your data with third parties except as required by law.</p>
+            <p><strong>3. Security</strong><br>We implement reasonable security measures to protect your data. However, no system is 100% secure.</p>
+            <p><strong>4. Your Rights</strong><br>You may request to view, update, or delete your data at any time by contacting the property owner.</p>
+          </div>
+        </div>
       </section>
     </div>
   </div>
@@ -823,6 +984,19 @@
       const regCodeGroup = $('#regCodeGroup');
       const regTillGroup = $('#regTillGroup');
       const regTill = $('#regTill');
+      const regPhone = $('#regPhone');
+      const regIdFile = $('#regIdFile');
+      const regPhotoFile = $('#regPhotoFile');
+      const regPhoneStar = $('#regPhoneStar');
+      const regIdStar = $('#regIdStar');
+      const regIdGroup = $('#regIdGroup');
+      const regPhotoGroup = $('#regPhotoGroup');
+
+      const termsModal = $('#termsModal');
+      const acceptTerms = $('#acceptTerms');
+      const acceptPrivacy = $('#acceptPrivacy');
+      const acceptTermsBtn = $('#acceptTermsBtn');
+      const termsError = $('#termsError');
 
       const app = $('#app');
       const sidebar = $('#sidebar');
@@ -851,7 +1025,8 @@
         queries: $('#view-queries'),
         users: $('#view-users'),
         reports: $('#view-reports'),
-        help: $('#view-help')
+        help: $('#view-help'),
+        legal: $('#view-legal')
       };
 
       const mpesaModal = $('#mpesaModal');
@@ -944,6 +1119,20 @@
       }
 
       // ================================================================
+      // STORAGE UPLOAD
+      // ================================================================
+      async function uploadFile(file, path) {
+        const { data, error } = await supabase.storage
+          .from('user-files')
+          .upload(path, file, { upsert: true });
+        if (error) throw error;
+        const { data: { publicUrl } } = supabase.storage
+          .from('user-files')
+          .getPublicUrl(path);
+        return publicUrl;
+      }
+
+      // ================================================================
       // AUTH FUNCTIONS
       // ================================================================
       async function login(email, password) {
@@ -974,6 +1163,13 @@
           loginError.textContent = '';
           await renderAll();
           subscribeToChanges();
+
+          // Check if user has accepted terms
+          const accepted = localStorage.getItem('rentalpro_terms_accepted_' + currentUser.id);
+          if (!accepted && !currentUser.accepted_terms) {
+            termsModal.classList.add('active');
+          }
+
           showToast(`🇰🇪 Karibu, ${currentUser.name}! (${currentCompany.name})`, 'fa-building');
           return true;
         } catch (err) {
@@ -1004,8 +1200,19 @@
               showToast('❌ Invalid or used sign‑up key.', 'fa-exclamation-circle');
               return false;
             }
-            // Mark key as used
             await supabase.from('signup_keys').update({ used: true }).eq('id', keyData.id);
+          }
+
+          // For tenants, phone and ID are required
+          if (data.role === 'tenant') {
+            if (!data.phone) {
+              showToast('❌ Phone number is required for tenants.', 'fa-exclamation-circle');
+              return false;
+            }
+            if (!data.idFile) {
+              showToast('❌ ID document is required for tenants.', 'fa-exclamation-circle');
+              return false;
+            }
           }
 
           const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -1018,6 +1225,23 @@
           }
 
           const userId = authData.user.id;
+
+          // Upload ID and photo if provided
+          let photoUrl = null;
+          let idUrl = null;
+          try {
+            if (data.photoFile) {
+              const path = `users/${userId}/photo.jpg`;
+              photoUrl = await uploadFile(data.photoFile, path);
+            }
+            if (data.idFile) {
+              const path = `users/${userId}/id.jpg`;
+              idUrl = await uploadFile(data.idFile, path);
+            }
+          } catch (err) {
+            showToast('❌ File upload failed: ' + err.message, 'fa-exclamation-circle');
+            return false;
+          }
 
           if (data.role === 'owner') {
             if (!data.till) {
@@ -1050,7 +1274,9 @@
                 name: data.name,
                 email: data.email,
                 role: 'owner',
-                phone: data.phone || ''
+                phone: data.phone || '',
+                photo_url: photoUrl,
+                id_url: idUrl
               });
             if (userError) {
               showToast('❌ ' + userError.message, 'fa-exclamation-circle');
@@ -1059,10 +1285,9 @@
             showToast(`✅ Company "${company.name}" created! Code: ${company.code}`, 'fa-check');
             return true;
           } else {
-            // Caretaker or Tenant: find company by code (for tenant, use company code from owner)
+            // Caretaker or Tenant
             let company;
             if (data.role === 'caretaker') {
-              // key already validated, get company from key
               const { data: keyData } = await supabase
                 .from('signup_keys')
                 .select('company_id')
@@ -1077,7 +1302,7 @@
               if (compError || !comp) { showToast('❌ Company not found.', 'fa-exclamation-circle'); return false; }
               company = comp;
             } else {
-              // Tenant: use company code (not signup key)
+              // Tenant: use company code
               const { data: comp, error: compError } = await supabase
                 .from('companies')
                 .select('*')
@@ -1098,7 +1323,9 @@
                 name: data.name,
                 email: data.email,
                 role: data.role,
-                phone: data.phone || ''
+                phone: data.phone || '',
+                photo_url: photoUrl,
+                id_url: idUrl
               });
             if (userError) {
               showToast('❌ ' + userError.message, 'fa-exclamation-circle');
@@ -1318,9 +1545,26 @@
       }
 
       // ================================================================
-      // USER CRUD (Admin only) – FIXED: removed password
+      // USER CRUD (with photo/ID upload)
       // ================================================================
       async function addUser(data) {
+        // Upload photo and ID if provided
+        let photoUrl = null;
+        let idUrl = null;
+        try {
+          if (data.photoFile) {
+            const path = `users/${generateId()}/photo.jpg`;
+            photoUrl = await uploadFile(data.photoFile, path);
+          }
+          if (data.idFile) {
+            const path = `users/${generateId()}/id.jpg`;
+            idUrl = await uploadFile(data.idFile, path);
+          }
+        } catch (err) {
+          showToast('❌ File upload failed: ' + err.message, 'fa-exclamation-circle');
+          return;
+        }
+
         const { error } = await supabase
           .from('users')
           .insert({
@@ -1329,7 +1573,9 @@
             email: data.email,
             role: data.role,
             phone: data.phone || '',
-            unit_id: data.unitId || null
+            unit_id: data.unitId || null,
+            photo_url: photoUrl,
+            id_url: idUrl
           });
         if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
         showToast(`✅ ${data.role} ${data.name} added.`, 'fa-user-plus');
@@ -1337,6 +1583,23 @@
       }
 
       async function updateUser(id, data) {
+        // Upload new files if provided
+        let photoUrl = data.existingPhotoUrl;
+        let idUrl = data.existingIdUrl;
+        try {
+          if (data.photoFile) {
+            const path = `users/${id}/photo.jpg`;
+            photoUrl = await uploadFile(data.photoFile, path);
+          }
+          if (data.idFile) {
+            const path = `users/${id}/id.jpg`;
+            idUrl = await uploadFile(data.idFile, path);
+          }
+        } catch (err) {
+          showToast('❌ File upload failed: ' + err.message, 'fa-exclamation-circle');
+          return;
+        }
+
         const { error } = await supabase
           .from('users')
           .update({
@@ -1344,7 +1607,9 @@
             email: data.email,
             role: data.role,
             phone: data.phone || '',
-            unit_id: data.unitId || null
+            unit_id: data.unitId || null,
+            photo_url: photoUrl,
+            id_url: idUrl
           })
           .eq('id', id);
         if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
@@ -1382,7 +1647,7 @@
       }
 
       // ================================================================
-      // M-PESA PAYMENT (unchanged)
+      // M-PESA PAYMENT
       // ================================================================
       function openMpesa(unitId, tenantId, amount) {
         if (!currentCompany.till) {
@@ -1454,6 +1719,75 @@
       }
 
       // ================================================================
+      // TERMS ACCEPTANCE
+      // ================================================================
+      function handleTermsAcceptance() {
+        const termsChecked = acceptTerms.checked;
+        const privacyChecked = acceptPrivacy.checked;
+        if (termsChecked && privacyChecked) {
+          acceptTermsBtn.disabled = false;
+          termsError.textContent = '';
+        } else {
+          acceptTermsBtn.disabled = true;
+          termsError.textContent = 'Please accept both Terms and Privacy Policy.';
+        }
+      }
+
+      async function acceptTermsAndPrivacy() {
+        if (!acceptTerms.checked || !acceptPrivacy.checked) {
+          termsError.textContent = 'Please accept both Terms and Privacy Policy.';
+          return;
+        }
+        localStorage.setItem('rentalpro_terms_accepted_' + currentUser.id, 'true');
+        const { error } = await supabase
+          .from('users')
+          .update({ accepted_terms: true })
+          .eq('id', currentUser.id);
+        if (error) {
+          showToast('❌ Could not save acceptance: ' + error.message, 'fa-exclamation-circle');
+          return;
+        }
+        currentUser.accepted_terms = true;
+        termsModal.classList.remove('active');
+        showToast('✅ Thank you for accepting our Terms & Privacy Policy.', 'fa-check');
+      }
+
+      // ================================================================
+      // REGISTER MODAL DYNAMICS
+      // ================================================================
+      function updateRegisterFields() {
+        const role = regRole.value;
+        // Toggle company name and till for owner
+        if (role === 'owner') {
+          regCompanyGroup.classList.remove('hidden');
+          regTillGroup.classList.remove('hidden');
+          regCodeGroup.classList.add('hidden');
+          regPhoneStar.style.display = 'none';
+          regIdStar.style.display = 'none';
+          regIdGroup.style.display = 'none';
+          regPhotoGroup.style.display = 'none';
+        } else if (role === 'caretaker') {
+          regCompanyGroup.classList.add('hidden');
+          regTillGroup.classList.add('hidden');
+          regCodeGroup.classList.remove('hidden');
+          regPhoneStar.style.display = 'none';
+          regIdStar.style.display = 'none';
+          regIdGroup.style.display = 'none';
+          regPhotoGroup.style.display = 'none';
+        } else { // tenant
+          regCompanyGroup.classList.add('hidden');
+          regTillGroup.classList.add('hidden');
+          regCodeGroup.classList.remove('hidden');
+          regPhoneStar.style.display = 'inline';
+          regIdStar.style.display = 'inline';
+          regIdGroup.style.display = 'block';
+          regPhotoGroup.style.display = 'block';
+          // For tenants, company code is the company code (not signup key)
+          document.querySelector('#regCodeGroup label').textContent = 'Company Code';
+        }
+      }
+
+      // ================================================================
       // RENDER FUNCTIONS
       // ================================================================
       async function renderSidebar() {
@@ -1486,15 +1820,19 @@
           items.push({ id: 'users', label: 'Team', icon: 'fa-users', badge: null });
           items.push({ id: 'reports', label: 'Reports', icon: 'fa-chart-bar', badge: null });
           items.push({ id: 'help', label: 'Help', icon: 'fa-question-circle', badge: null });
+          items.push({ id: 'legal', label: 'Legal', icon: 'fa-gavel', badge: null });
         } else if (isCaretaker) {
           items.push({ id: 'units', label: 'Units', icon: 'fa-hotel', badge: units.length });
           items.push({ id: 'payments', label: 'Payments', icon: 'fa-coin', badge: payments.filter(p => p.status !== 'paid').length });
           items.push({ id: 'queries', label: 'Queries', icon: 'fa-headset', badge: queries.filter(q => q.status === 'open').length });
+          items.push({ id: 'users', label: 'Team', icon: 'fa-users', badge: null });
           items.push({ id: 'help', label: 'Help', icon: 'fa-question-circle', badge: null });
+          items.push({ id: 'legal', label: 'Legal', icon: 'fa-gavel', badge: null });
         } else if (isTenant) {
           items.push({ id: 'payments', label: 'My Payments', icon: 'fa-coin', badge: null });
           items.push({ id: 'queries', label: 'My Queries', icon: 'fa-headset', badge: queries.filter(q => q.tenant_id === currentUser.id && q.status === 'open').length });
           items.push({ id: 'help', label: 'Help', icon: 'fa-question-circle', badge: null });
+          items.push({ id: 'legal', label: 'Legal', icon: 'fa-gavel', badge: null });
         }
 
         sidebarNav.innerHTML = `
@@ -1556,7 +1894,7 @@
                 <h4><i class="fas fa-users"></i> Team &amp; Tenants</h4>
                 <ul>
                   <li><strong>Add users</strong> – In <strong>Team</strong>, you can manually add caretakers or tenants (they’ll get credentials).</li>
-                  <li><strong>Tenant registration</strong> – Tenants can register themselves using your <strong>Company Code</strong> (shown in sidebar).</li>
+                  <li><strong>Tenant registration</strong> – Tenants can register themselves using your <strong>Company Code</strong> (shown in sidebar). They must upload their ID and phone.</li>
                   <li><strong>M‑Pesa Till</strong> – Your company’s till number is shown in the sidebar; tenants pay rent to this number.</li>
                 </ul>
               </div>
@@ -1600,6 +1938,16 @@
                   <li>Tenants can pay rent via M‑PESA – the payment is recorded automatically.</li>
                   <li>In <strong>Queries</strong>, you can view tenant requests and mark them as resolved.</li>
                 </ul>
+              </div>
+
+              <div class="help-card">
+                <h4><i class="fas fa-users"></i> Adding / Editing Tenants</h4>
+                <ul>
+                  <li>You can add tenants in the <strong>Team</strong> tab by clicking <em>“Add Tenant”</em> – you can upload their photo and ID.</li>
+                  <li>You can also <strong>edit existing tenants</strong> to add missing phone, photo, or ID.</li>
+                  <li>You can view all users but cannot edit/delete owners or other caretakers.</li>
+                </ul>
+                <div class="highlight"><i class="fas fa-info-circle"></i> You can only add and edit tenants, not caretakers or owners.</div>
               </div>
 
               <div class="help-card">
@@ -1769,7 +2117,6 @@
           `;
         }).join('');
 
-        // Update stats for each building
         const data = await getCompanyData();
         buildings.forEach(b => {
           const bUnits = data.units.filter(u => u.building_id === b.id);
@@ -1956,28 +2303,56 @@
         }).join('') || `<div class="empty-state"><i class="fas fa-inbox"></i><p>No queries.</p></div>`;
       }
 
-      // ===== USERS RENDER =====
+      // ===== USERS RENDER (with avatars and phone) =====
       async function renderUsers() {
-        const { users } = await getCompanyData();
+        const { users, units } = await getCompanyData();
         const isOwner = currentUser.role === 'owner';
-        if (!isOwner) { $('#usersGrid').innerHTML = ''; return; }
+        const isCaretaker = currentUser.role === 'caretaker';
+        // Allow both owner and caretaker to view this tab
+        if (!isOwner && !isCaretaker) { $('#usersGrid').innerHTML = ''; return; }
 
-        $('#usersActions').innerHTML =
-          `<button class="btn btn-primary btn-sm" onclick="openCrud('user','add')"><i class="fas fa-user-plus"></i> Add User</button>`;
+        // For caretakers, only allow adding tenants (role='tenant')
+        const canAdd = isOwner || isCaretaker;
+        const addLabel = isOwner ? 'Add User' : 'Add Tenant';
+        const addRole = isOwner ? null : 'tenant';
+        $('#usersActions').innerHTML = canAdd ?
+          `<button class="btn btn-primary btn-sm" onclick="openCrud('user','add', null, '${addRole}')"><i class="fas fa-user-plus"></i> ${addLabel}</button>` :
+          '';
 
-        $('#usersGrid').innerHTML = users.map(u => `
-          <div class="user-card">
-            <div class="user-info">
-              <div class="u-name">${u.name}</div>
-              <div class="u-email">${u.email}</div>
-              <div class="u-role"><i class="fas fa-${u.role === 'owner' ? 'crown' : u.role === 'caretaker' ? 'tools' : 'user'}"></i> ${u.role}</div>
+        if (users.length === 0) {
+          $('#usersGrid').innerHTML = `<div class="empty-state"><i class="fas fa-users"></i><p>No users.</p></div>`;
+          return;
+        }
+
+        $('#usersGrid').innerHTML = users.map(u => {
+          const avatarHtml = u.photo_url ?
+            `<img src="${u.photo_url}" alt="${u.name}" class="user-avatar" />` :
+            `<div class="user-avatar-placeholder">${getInitials(u.name)}</div>`;
+          // Owners can edit/delete any user; caretakers can only edit tenants (not owners/caretakers)
+          const canEdit = isOwner || (isCaretaker && u.role === 'tenant');
+          const canDelete = isOwner && u.role !== 'owner';
+          return `
+            <div class="user-card">
+              ${avatarHtml}
+              <div class="user-info">
+                <div class="u-name">${u.name}</div>
+                <div class="u-email">${u.email}</div>
+                <div class="u-role"><i class="fas fa-${u.role === 'owner' ? 'crown' : u.role === 'caretaker' ? 'tools' : 'user'}"></i> ${u.role}</div>
+                ${u.phone ? `<div class="u-phone"><i class="fas fa-phone"></i> ${u.phone}</div>` : ''}
+                ${u.unit_id ? `<div class="u-phone"><i class="fas fa-home"></i> Unit: ${(units.find(unit=>unit.id===u.unit_id)||{}).number || '—'}</div>` : ''}
+                ${u.id_url ? `<div class="u-phone"><i class="fas fa-id-card"></i> <a href="${u.id_url}" target="_blank" style="color:var(--kenya-green);">View ID</a></div>` : ''}
+              </div>
+              <div class="user-actions">
+                ${(canEdit) ? `
+                  <button class="btn btn-edit btn-sm" onclick="openCrud('user','edit','${u.id}')"><i class="fas fa-edit"></i></button>
+                ` : ''}
+                ${(canDelete) ? `
+                  <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')"><i class="fas fa-trash"></i></button>
+                ` : ''}
+              </div>
             </div>
-            <div class="user-actions">
-              <button class="btn btn-edit btn-sm" onclick="openCrud('user','edit','${u.id}')"><i class="fas fa-edit"></i></button>
-              <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')"><i class="fas fa-trash"></i></button>
-            </div>
-          </div>
-        `).join('') || `<div class="empty-state"><i class="fas fa-users"></i><p>No users.</p></div>`;
+          `;
+        }).join('');
       }
 
       // ===== REPORTS RENDER =====
@@ -2032,7 +2407,7 @@
         Object.keys(views).forEach(key => views[key].classList.toggle('active', key === view));
         sidebarNav.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.view === view));
         closeSidebar();
-        const titles = { dashboard: 'Dashboard', buildings: 'Buildings', units: 'Units', payments: 'Payments', deposits: 'Deposits & Damages', queries: 'Queries', users: 'Team', reports: 'Reports', help: 'Help' };
+        const titles = { dashboard: 'Dashboard', buildings: 'Buildings', units: 'Units', payments: 'Payments', deposits: 'Deposits & Damages', queries: 'Queries', users: 'Team', reports: 'Reports', help: 'Help', legal: 'Legal' };
         pageTitle.textContent = titles[view] || 'Dashboard';
         if (view === 'dashboard') renderDashboard();
         else if (view === 'buildings') renderBuildings();
@@ -2043,6 +2418,7 @@
         else if (view === 'users') renderUsers();
         else if (view === 'reports') renderReports();
         else if (view === 'help') renderHelp();
+        else if (view === 'legal') { /* static content */ }
       }
 
       // ================================================================
@@ -2052,9 +2428,9 @@
       function closeSidebar() { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); }
 
       // ================================================================
-      // CRUD MODAL
+      // CRUD MODAL (with file uploads for users)
       // ================================================================
-      window.openCrud = async function(type, mode, id = null) {
+      window.openCrud = async function(type, mode, id = null, forcedRole = null) {
         const modal = $('#crudModal');
         const title = $('#crudModalTitle');
         const fields = $('#crudFormFields');
@@ -2153,23 +2529,60 @@
             closeModal('#crudModal');
           };
         } else if (type === 'user') {
-          // Removed password field – admin adds user without setting password
-          title.textContent = mode === 'add' ? 'Add User' : 'Edit User';
+          // User form with photo and ID upload
+          const isCaretaker = currentUser.role === 'caretaker';
+          const roleOptions = `
+            <option value="caretaker" ${entity && entity.role === 'caretaker' ? 'selected' : ''}>Caretaker</option>
+            <option value="tenant" ${entity && entity.role === 'tenant' ? 'selected' : ''}>Tenant</option>
+          `;
+          const forcedRoleAttr = forcedRole ? `value="${forcedRole}"` : '';
+          const roleHtml = forcedRole ?
+            `<input type="hidden" id="f_user_role" value="${forcedRole}" />` :
+            `<select id="f_user_role">${roleOptions}</select>`;
+          title.textContent = mode === 'add' ? (forcedRole === 'tenant' ? 'Add Tenant' : 'Add User') : 'Edit Tenant';
+          const existingPhoto = entity && entity.photo_url ? `<img src="${entity.photo_url}" class="preview" style="width:60px;height:60px;object-fit:cover;border-radius:8px;" />` : '';
+          const existingId = entity && entity.id_url ? `<a href="${entity.id_url}" target="_blank" class="btn btn-outline btn-sm">View Current ID</a>` : '';
+          const unitSelect = units.map(u =>
+            `<option value="${u.id}" ${entity && entity.unit_id === u.id ? 'selected' : ''}>${u.number}</option>`
+          ).join('');
+          // For caretakers, if editing, we only allow editing tenants, so role is hidden.
+          const roleDisplay = (isCaretaker && mode === 'edit') ? 'hidden' : '';
           html = `
             <div class="form-group"><label>Full Name</label><input type="text" id="f_user_name" value="${entity ? entity.name : ''}" required /></div>
             <div class="form-group"><label>Email</label><input type="email" id="f_user_email" value="${entity ? entity.email : ''}" required /></div>
-            <div class="form-group"><label>Phone (M-PESA)</label><input type="tel" id="f_user_phone" value="${entity ? entity.phone || '' : ''}" placeholder="254712345678" /></div>
-            <div class="form-group"><label>Role</label><select id="f_user_role"><option value="caretaker" ${entity && entity.role === 'caretaker' ? 'selected' : ''}>Caretaker</option><option value="tenant" ${entity && entity.role === 'tenant' ? 'selected' : ''}>Tenant</option></select></div>
-            ${mode === 'edit' && entity && entity.role === 'tenant' ? `<div class="form-group"><label>Unit</label><select id="f_user_unit"><option value="">— None —</option>${units.map(u=>`<option value="${u.id}" ${entity.unit_id === u.id ? 'selected' : ''}>${u.number}</option>`).join('')}</select></div>` : ''}
+            <div class="form-group"><label>Phone (M-PESA)</label><input type="tel" id="f_user_phone" value="${entity ? entity.phone || '' : ''}" placeholder="254712345678" required /></div>
+            <div class="form-group" style="${roleDisplay}"><label>Role</label>${roleHtml}</div>
+            <div class="form-group"><label>Unit (for tenant)</label><select id="f_user_unit"><option value="">— None —</option>${unitSelect}</select></div>
+            <div class="form-group">
+              <label>Profile Photo</label>
+              <div class="file-input-wrapper">
+                <input type="file" id="f_user_photo" accept="image/*" />
+                ${existingPhoto}
+              </div>
+            </div>
+            <div class="form-group">
+              <label>ID Document (Photo)</label>
+              <div class="file-input-wrapper">
+                <input type="file" id="f_user_id" accept="image/*" />
+                ${existingId}
+              </div>
+            </div>
           `;
           submit.onclick = async (e) => {
             e.preventDefault();
+            const photoFile = document.getElementById('f_user_photo').files[0] || null;
+            const idFile = document.getElementById('f_user_id').files[0] || null;
+            const role = forcedRole || document.getElementById('f_user_role').value;
             const data = {
               name: $('#f_user_name').value,
               email: $('#f_user_email').value,
               phone: $('#f_user_phone').value || '',
-              role: $('#f_user_role').value,
-              unitId: $('#f_user_unit') ? $('#f_user_unit').value || null : null
+              role: role,
+              unitId: $('#f_user_unit').value || null,
+              photoFile: photoFile,
+              idFile: idFile,
+              existingPhotoUrl: entity ? entity.photo_url : null,
+              existingIdUrl: entity ? entity.id_url : null
             };
             if (mode === 'add') await addUser(data);
             else await updateUser(id, data);
@@ -2284,23 +2697,10 @@
       closeRegisterBtn.addEventListener('click', () => registerModal.classList.remove('active'));
       registerModal.addEventListener('click', (e) => { if (e.target === registerModal) registerModal.classList.remove('active'); });
 
-      regRole.addEventListener('change', () => {
-        if (regRole.value === 'owner') {
-          regCompanyGroup.classList.remove('hidden');
-          regCodeGroup.classList.add('hidden');
-          regTillGroup.classList.remove('hidden');
-        } else if (regRole.value === 'caretaker') {
-          regCompanyGroup.classList.add('hidden');
-          regCodeGroup.classList.remove('hidden');
-          regTillGroup.classList.add('hidden');
-          document.querySelector('#regCodeGroup label').textContent = 'Sign‑up Key';
-        } else {
-          regCompanyGroup.classList.add('hidden');
-          regCodeGroup.classList.remove('hidden');
-          regTillGroup.classList.add('hidden');
-          document.querySelector('#regCodeGroup label').textContent = 'Company Code';
-        }
-      });
+      // Register role change
+      regRole.addEventListener('change', updateRegisterFields);
+      // Initial update
+      updateRegisterFields();
 
       registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -2308,11 +2708,13 @@
           name: $('#regName').value,
           email: $('#regEmail').value,
           password: $('#regPassword').value,
+          phone: $('#regPhone').value.trim(),
           role: regRole.value,
           companyName: $('#regCompanyName').value,
           companyCode: $('#regCompanyCode').value,
           till: $('#regTill').value.trim(),
-          phone: ''
+          idFile: regIdFile.files[0] || null,
+          photoFile: regPhotoFile.files[0] || null
         };
         const success = await register(data);
         if (success) {
@@ -2324,6 +2726,11 @@
           showToast('✅ Registration successful! You can now log in.', 'fa-check');
         }
       });
+
+      // Terms modal events
+      acceptTerms.addEventListener('change', handleTermsAcceptance);
+      acceptPrivacy.addEventListener('change', handleTermsAcceptance);
+      acceptTermsBtn.addEventListener('click', acceptTermsAndPrivacy);
 
       $('#closeCrudBtn').addEventListener('click', () => closeModal('#crudModal'));
       $('#crudModal').addEventListener('click', (e) => { if (e.target === $('#crudModal')) closeModal('#crudModal'); });
@@ -2417,6 +2824,13 @@
             app.classList.add('visible');
             await renderAll();
             subscribeToChanges();
+
+            const accepted = localStorage.getItem('rentalpro_terms_accepted_' + currentUser.id);
+            if (!accepted && !currentUser.accepted_terms) {
+              termsModal.classList.add('active');
+            } else if (accepted && !currentUser.accepted_terms) {
+              await supabase.from('users').update({ accepted_terms: true }).eq('id', currentUser.id);
+            }
             showToast(`🇰🇪 Welcome back, ${currentUser.name}!`, 'fa-building');
             return;
           }
@@ -2425,9 +2839,9 @@
         app.classList.remove('visible');
       });
 
-      console.log('🚀 RentalPro with Buildings, Caretaker Keys, Reports, and Help!');
-      console.log('💡 Register a new owner first, then add buildings and units.');
-      console.log('✅ Password column error fixed – removed from user insert.');
+      console.log('🚀 RentalPro with Tenant ID/Phone required on registration, and caretaker can edit tenants.');
+      console.log('✅ Tenants must upload ID and phone during sign-up.');
+      console.log('✅ Caretakers can now edit existing tenants to add missing details.');
 
       // Expose functions globally for onclick
       window.openMpesa = openMpesa;
