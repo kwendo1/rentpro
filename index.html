@@ -3,21 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Explicit CSP allowing eval and inline scripts/styles -->
   <meta http-equiv="Content-Security-Policy" content="
     script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net;
     style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
     font-src 'self' https://cdnjs.cloudflare.com;
     connect-src 'self' https://kmfxnetauisbbhijjseo.supabase.co;
   ">
-  <title>RentalPro Kenya · Supabase</title>
+  <title>RentalPro Kenya · Property Management</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* ===== CSS (full styles – unchanged) ===== */
+    /* ===== CSS (full styles – same as before) ===== */
     :root {
       --kenya-green: #1a5c2a;
       --kenya-red: #a81010;
@@ -111,7 +110,7 @@
     }
     .modal-overlay.active { display: flex; }
     .modal-box {
-      background: var(--bg-card); border-radius: var(--radius); max-width: 540px; width: 100%;
+      background: var(--bg-card); border-radius: var(--radius); max-width: 640px; width: 100%;
       max-height: 90vh; overflow-y: auto; padding: 32px 30px; box-shadow: var(--shadow-lg);
       position: relative; animation: fadeUp 0.3s ease;
     }
@@ -135,6 +134,15 @@
     .modal-box .btn-primary { width: 100%; justify-content: center; padding: 14px; }
     .modal-box .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 500px) { .modal-box .form-row { grid-template-columns: 1fr; } }
+    .modal-box .key-display {
+      background: #f0f7f0; padding: 12px 16px; border-radius: var(--radius-sm);
+      border: 1px solid var(--kenya-green); font-family: monospace; font-size: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      margin: 10px 0;
+    }
+    .modal-box .key-display .copy-btn {
+      color: var(--kenya-green); font-size: 18px; cursor: pointer;
+    }
 
     /* ===== MAIN APP ===== */
     #app { display: none; min-height: 100vh; }
@@ -290,13 +298,26 @@
     .btn-mpesa { background: #00a859; color: #fff; }
     .btn-mpesa:hover { background: #008c4a; }
 
-    .units-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
-    .unit-card {
+    .buildings-grid, .units-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .building-card, .unit-card {
       background: var(--bg-card); border-radius: var(--radius); padding: 20px;
       box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);
-      transition: var(--transition); position: relative; overflow: hidden;
+      transition: var(--transition); position: relative;
     }
-    .unit-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .building-card:hover, .unit-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .building-card .building-name { font-size: 20px; font-weight: 700; }
+    .building-card .building-location { color: var(--text-muted); font-size: 14px; margin: 4px 0 8px; }
+    .building-card .building-stats { font-size: 13px; color: var(--text-secondary); }
+    .building-card .card-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .building-card .caretaker-badge {
+      display: inline-block; font-size: 12px; padding: 2px 12px; border-radius: 20px;
+      background: #e3f0fd; color: #1a5276; margin-top: 4px;
+    }
+
     .unit-card .status-badge {
       position: absolute; top: 16px; right: 16px; font-size: 11px; font-weight: 600;
       padding: 4px 14px; border-radius: 30px; text-transform: uppercase; letter-spacing: 0.3px;
@@ -304,20 +325,13 @@
     .unit-card .status-badge.occupied { background: #e8f5e9; color: var(--kenya-green); }
     .unit-card .status-badge.vacant { background: #fce4e4; color: var(--kenya-red); }
     .unit-card .status-badge.maintenance { background: #fff3e0; color: #e67e22; }
-    .unit-card .unit-number { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+    .unit-card .unit-number { font-size: 20px; font-weight: 700; }
     .unit-card .unit-number small { font-weight: 400; font-size: 13px; color: var(--text-muted); margin-left: 6px; }
     .unit-card .unit-details { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--text-secondary); }
     .unit-card .unit-details i { width: 18px; color: var(--kenya-green); opacity: 0.7; }
-    .unit-card .unit-rent {
-      margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-light);
-      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
-    }
+    .unit-card .unit-rent { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
     .unit-card .unit-rent .rent-amount { font-weight: 700; font-size: 17px; color: var(--kenya-green); }
-    .unit-card .unit-rent .rent-amount span { font-weight: 400; font-size: 13px; color: var(--text-muted); }
-    .unit-card .card-actions {
-      display: flex; gap: 8px; margin-top: 12px; padding-top: 12px;
-      border-top: 1px solid var(--border-light); justify-content: flex-end; flex-wrap: wrap;
-    }
+    .unit-card .card-actions { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light); justify-content: flex-end; flex-wrap: wrap; }
     .unit-card .due-badge {
       display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 12px;
       border-radius: 30px; background: #fce4e4; color: var(--kenya-red); margin-left: 8px;
@@ -333,14 +347,9 @@
     .status-pill.paid { background: #e8f5e9; color: var(--kenya-green); }
     .status-pill.unpaid { background: #fce4e4; color: var(--kenya-red); }
     .status-pill.partial { background: #fff3e0; color: #e67e22; }
-    .status-pill.resolved { background: #e8f5e9; color: var(--kenya-green); }
-    .status-pill.open { background: #fce4e4; color: var(--kenya-red); }
 
     .deposit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-top: 8px; }
-    .deposit-card {
-      background: var(--bg-card); border-radius: var(--radius); padding: 20px;
-      border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); transition: var(--transition);
-    }
+    .deposit-card { background: var(--bg-card); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); transition: var(--transition); }
     .deposit-card:hover { box-shadow: var(--shadow-md); }
     .deposit-card .amount { font-size: 24px; font-weight: 700; color: var(--kenya-red); }
     .deposit-card .label { font-size: 13px; color: var(--text-muted); }
@@ -425,11 +434,11 @@
       .header-right .date-badge { display: none; }
       .stats-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
       .stat-card .stat-value { font-size: 24px; }
-      .units-grid { grid-template-columns: 1fr 1fr; }
+      .buildings-grid, .units-grid { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 500px) {
       .stats-grid { grid-template-columns: 1fr; }
-      .units-grid { grid-template-columns: 1fr; }
+      .buildings-grid, .units-grid { grid-template-columns: 1fr; }
       .header-right .profile .name, .header-right .profile .role { display: none; }
       .header-right .profile { padding: 4px; }
       .login-container { padding: 32px 20px 28px; margin: 16px; }
@@ -493,7 +502,7 @@
     <div class="modal-box">
       <button class="modal-close" id="closeRegisterBtn">&times;</button>
       <h2><i class="fas fa-user-plus" style="color:var(--kenya-green);"></i> Register</h2>
-      <p class="modal-sub">Owners must provide a M‑Pesa Paybill/Till number.</p>
+      <p class="modal-sub">Owners provide company details. Caretakers need a sign‑up key from the owner.</p>
       <form id="registerForm">
         <div class="form-group"><label>Full Name</label><input type="text" id="regName" placeholder="e.g. Jane Muthoni" required /></div>
         <div class="form-group"><label>Email Address</label><input type="email" id="regEmail" placeholder="e.g. jane@domain.com" required /></div>
@@ -515,8 +524,8 @@
           <input type="text" id="regCompanyName" placeholder="e.g. Muthoni Properties Ltd" />
         </div>
         <div class="form-group hidden" id="regCodeGroup">
-          <label>Company Code</label>
-          <input type="text" id="regCompanyCode" placeholder="Enter the code provided by your owner" />
+          <label>Company Code (for caretakers)</label>
+          <input type="text" id="regCompanyCode" placeholder="Enter the sign‑up key provided by your owner" />
         </div>
         <button type="submit" class="btn btn-primary w-full"><i class="fas fa-paper-plane"></i> Register</button>
       </form>
@@ -584,10 +593,19 @@
         <div class="units-grid" id="dashboardUnits"></div>
       </section>
 
+      <!-- VIEW: BUILDINGS (Admin only) -->
+      <section class="view" id="view-buildings">
+        <div class="section-header" style="margin-top:4px;">
+          <h3><i class="fas fa-building"></i> Properties / Buildings</h3>
+          <div class="actions" id="buildingsActions"></div>
+        </div>
+        <div class="buildings-grid" id="buildingsGrid"></div>
+      </section>
+
       <!-- VIEW: UNITS -->
       <section class="view" id="view-units">
         <div class="section-header" style="margin-top:4px;">
-          <h3><i class="fas fa-hotel"></i> All Units</h3>
+          <h3><i class="fas fa-hotel"></i> Units</h3>
           <div class="actions" id="unitsListActions"></div>
         </div>
         <div class="units-grid" id="allUnits"></div>
@@ -646,13 +664,22 @@
         </div>
       </section>
 
-      <!-- VIEW: USERS (Owner only) -->
+      <!-- VIEW: USERS (Admin only) -->
       <section class="view" id="view-users">
         <div class="section-header" style="margin-top:4px;">
           <h3><i class="fas fa-users"></i> Team Members</h3>
           <div class="actions" id="usersActions"></div>
         </div>
         <div class="users-grid" id="usersGrid"></div>
+      </section>
+
+      <!-- VIEW: REPORTS (Admin only) -->
+      <section class="view" id="view-reports">
+        <div class="section-header" style="margin-top:4px;">
+          <h3><i class="fas fa-chart-bar"></i> Reports</h3>
+          <div class="actions" id="reportsActions"></div>
+        </div>
+        <div id="reportsContainer"></div>
       </section>
     </div>
   </div>
@@ -705,6 +732,13 @@
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       // ================================================================
+      // HELPERS
+      // ================================================================
+      function generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+      }
+
+      // ================================================================
       // STATE
       // ================================================================
       let currentUser = null;
@@ -753,11 +787,13 @@
 
       const views = {
         dashboard: $('#view-dashboard'),
+        buildings: $('#view-buildings'),
         units: $('#view-units'),
         payments: $('#view-payments'),
         deposits: $('#view-deposits'),
         queries: $('#view-queries'),
-        users: $('#view-users')
+        users: $('#view-users'),
+        reports: $('#view-reports')
       };
 
       const mpesaModal = $('#mpesaModal');
@@ -899,6 +935,21 @@
 
       async function register(data) {
         try {
+          // If caretaker, validate sign-up key
+          if (data.role === 'caretaker') {
+            const { data: keyData, error: keyError } = await supabase
+              .from('signup_keys')
+              .select('*')
+              .eq('key', data.companyCode)
+              .single();
+            if (keyError || !keyData || keyData.used) {
+              showToast('❌ Invalid or used sign‑up key.', 'fa-exclamation-circle');
+              return false;
+            }
+            // Mark key as used
+            await supabase.from('signup_keys').update({ used: true }).eq('id', keyData.id);
+          }
+
           const { data: authData, error: authError } = await supabase.auth.signUp({
             email: data.email,
             password: data.password,
@@ -950,15 +1001,37 @@
             showToast(`✅ Company "${company.name}" created! Code: ${company.code}`, 'fa-check');
             return true;
           } else {
-            const { data: company, error: companyError } = await supabase
-              .from('companies')
-              .select('*')
-              .eq('code', data.companyCode)
-              .single();
-            if (companyError || !company) {
-              showToast('❌ Invalid company code.', 'fa-exclamation-circle');
-              return false;
+            // Caretaker or Tenant: find company by code (for tenant, use company code from owner)
+            let company;
+            if (data.role === 'caretaker') {
+              // key already validated, get company from key
+              const { data: keyData } = await supabase
+                .from('signup_keys')
+                .select('company_id')
+                .eq('key', data.companyCode)
+                .single();
+              if (!keyData) { showToast('❌ Invalid key.', 'fa-exclamation-circle'); return false; }
+              const { data: comp, error: compError } = await supabase
+                .from('companies')
+                .select('*')
+                .eq('id', keyData.company_id)
+                .single();
+              if (compError || !comp) { showToast('❌ Company not found.', 'fa-exclamation-circle'); return false; }
+              company = comp;
+            } else {
+              // Tenant: use company code (not signup key)
+              const { data: comp, error: compError } = await supabase
+                .from('companies')
+                .select('*')
+                .eq('code', data.companyCode)
+                .single();
+              if (compError || !comp) {
+                showToast('❌ Invalid company code.', 'fa-exclamation-circle');
+                return false;
+              }
+              company = comp;
             }
+
             const { error: userError } = await supabase
               .from('users')
               .insert({
@@ -986,32 +1059,84 @@
       // DATA FETCHING
       // ================================================================
       async function getCompanyData() {
-        if (!currentCompany) return { units: [], payments: [], users: [], queries: [] };
+        if (!currentCompany) return { buildings: [], units: [], payments: [], users: [], queries: [], signupKeys: [] };
         const companyId = currentCompany.id;
 
-        const [unitsRes, paymentsRes, usersRes, queriesRes] = await Promise.all([
+        const [buildingsRes, unitsRes, paymentsRes, usersRes, queriesRes, keysRes] = await Promise.all([
+          supabase.from('buildings').select('*').eq('company_id', companyId),
           supabase.from('units').select('*').eq('company_id', companyId),
           supabase.from('payments').select('*').eq('company_id', companyId),
           supabase.from('users').select('*').eq('company_id', companyId),
-          supabase.from('queries').select('*').eq('company_id', companyId)
+          supabase.from('queries').select('*').eq('company_id', companyId),
+          supabase.from('signup_keys').select('*').eq('company_id', companyId)
         ]);
 
         return {
+          buildings: buildingsRes.data || [],
           units: unitsRes.data || [],
           payments: paymentsRes.data || [],
           users: usersRes.data || [],
-          queries: queriesRes.data || []
+          queries: queriesRes.data || [],
+          signupKeys: keysRes.data || []
         };
       }
 
       // ================================================================
-      // CRUD OPERATIONS
+      // CRUD OPERATIONS (Buildings & Units)
       // ================================================================
+      async function addBuilding(data) {
+        const { error } = await supabase
+          .from('buildings')
+          .insert({
+            company_id: currentCompany.id,
+            name: data.name,
+            location: data.location,
+            caretaker_id: data.caretakerId || null
+          });
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('✅ Building added.', 'fa-plus-circle');
+        renderAll();
+      }
+
+      async function updateBuilding(id, data) {
+        const { error } = await supabase
+          .from('buildings')
+          .update({
+            name: data.name,
+            location: data.location,
+            caretaker_id: data.caretakerId || null
+          })
+          .eq('id', id);
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('✅ Building updated.', 'fa-edit');
+        renderAll();
+      }
+
+      async function deleteBuilding(id) {
+        if (!confirm('Delete this building and all its units?')) return;
+        // Delete units first (cascade would handle, but we do explicitly)
+        await supabase.from('units').delete().eq('building_id', id);
+        const { error } = await supabase.from('buildings').delete().eq('id', id);
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('🗑️ Building deleted.', 'fa-trash');
+        renderAll();
+      }
+
+      // ===== FIXED ADD UNIT =====
       async function addUnit(data) {
+        // Ensure building_id is provided
+        if (!data.buildingId) {
+          showToast('❌ Please select a building.', 'fa-exclamation-circle');
+          return;
+        }
+        // Generate a unique ID for the unit
+        const unitId = generateId();
         const { error } = await supabase
           .from('units')
           .insert({
+            id: unitId,  // <-- FIX: provide primary key
             company_id: currentCompany.id,
+            building_id: data.buildingId,
             number: data.number,
             location: data.location,
             tenant_id: data.tenantId || null,
@@ -1021,7 +1146,10 @@
             damage: data.damage || null,
             rent_due_day: data.rentDueDay || 5
           });
-        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        if (error) {
+          showToast('❌ ' + error.message, 'fa-exclamation-circle');
+          return;
+        }
         showToast('✅ Unit added.', 'fa-plus-circle');
         renderAll();
       }
@@ -1030,6 +1158,7 @@
         const { error } = await supabase
           .from('units')
           .update({
+            building_id: data.buildingId,
             number: data.number,
             location: data.location,
             tenant_id: data.tenantId || null,
@@ -1055,6 +1184,43 @@
         renderAll();
       }
 
+      // ================================================================
+      // SIGN-UP KEY GENERATION
+      // ================================================================
+      async function generateSignupKey() {
+        const key = 'CT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        const { error } = await supabase
+          .from('signup_keys')
+          .insert({
+            company_id: currentCompany.id,
+            key: key,
+            used: false
+          });
+        if (error) {
+          showToast('❌ ' + error.message, 'fa-exclamation-circle');
+          return;
+        }
+        showToast(`✅ New sign‑up key: ${key} (copied to clipboard)`, 'fa-key');
+        navigator.clipboard?.writeText(key);
+        renderAll();
+      }
+
+      // ================================================================
+      // ASSIGN CARETAKER TO BUILDING
+      // ================================================================
+      async function assignCaretaker(buildingId, caretakerId) {
+        const { error } = await supabase
+          .from('buildings')
+          .update({ caretaker_id: caretakerId || null })
+          .eq('id', buildingId);
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('✅ Caretaker assigned.', 'fa-check');
+        renderAll();
+      }
+
+      // ================================================================
+      // PAYMENTS CRUD (kept from before)
+      // ================================================================
       async function addPayment(data) {
         const { error } = await supabase
           .from('payments')
@@ -1097,6 +1263,9 @@
         renderAll();
       }
 
+      // ================================================================
+      // USER CRUD (Admin only)
+      // ================================================================
       async function addUser(data) {
         const { error } = await supabase
           .from('users')
@@ -1138,6 +1307,9 @@
         renderAll();
       }
 
+      // ================================================================
+      // QUERIES CRUD
+      // ================================================================
       async function resolveQuery(id) {
         const { error } = await supabase
           .from('queries')
@@ -1157,7 +1329,7 @@
       }
 
       // ================================================================
-      // M-PESA PAYMENT
+      // M-PESA PAYMENT (unchanged)
       // ================================================================
       function openMpesa(unitId, tenantId, amount) {
         if (!currentCompany.till) {
@@ -1237,7 +1409,7 @@
         const isOwner = role === 'owner';
         const isCaretaker = role === 'caretaker';
         const isTenant = role === 'tenant';
-        const { units, payments, queries } = await getCompanyData();
+        const { buildings, units, payments, queries } = await getCompanyData();
 
         sidebarCompanyName.textContent = currentCompany.name;
         sidebarTill.textContent = currentCompany.till ? `Till: ${currentCompany.till}` : 'Till: Not set';
@@ -1252,26 +1424,21 @@
         let items = [];
         items.push({ id: 'dashboard', label: 'Dashboard', icon: 'fa-chart-pie', badge: null });
 
-        if (isOwner || isCaretaker) {
-          const overdueCount = units.filter(u => u.tenant_id && isRentDueWithPayments(u, payments)).length;
+        if (isOwner) {
+          items.push({ id: 'buildings', label: 'Buildings', icon: 'fa-building', badge: buildings.length });
           items.push({ id: 'units', label: 'Units', icon: 'fa-hotel', badge: units.length });
           items.push({ id: 'payments', label: 'Payments', icon: 'fa-coin', badge: payments.filter(p => p.status !== 'paid').length });
           items.push({ id: 'deposits', label: 'Deposits', icon: 'fa-shield-alt', badge: null });
           items.push({ id: 'queries', label: 'Queries', icon: 'fa-headset', badge: queries.filter(q => q.status === 'open').length });
-          if (isOwner) items.push({ id: 'users', label: 'Team', icon: 'fa-users', badge: null });
-          const overdueItem = items.find(it => it.id === 'units');
-          if (overdueItem && overdueCount > 0) {
-            overdueItem.badge = `${units.length} (${overdueCount} overdue)`;
-          }
+          items.push({ id: 'users', label: 'Team', icon: 'fa-users', badge: null });
+          items.push({ id: 'reports', label: 'Reports', icon: 'fa-chart-bar', badge: null });
+        } else if (isCaretaker) {
+          items.push({ id: 'units', label: 'Units', icon: 'fa-hotel', badge: units.length });
+          items.push({ id: 'payments', label: 'Payments', icon: 'fa-coin', badge: payments.filter(p => p.status !== 'paid').length });
+          items.push({ id: 'queries', label: 'Queries', icon: 'fa-headset', badge: queries.filter(q => q.status === 'open').length });
         } else if (isTenant) {
-          const myUnit = units.find(u => u.tenant_id === currentUser.id);
-          const myOverdue = myUnit && isRentDueWithPayments(myUnit, payments) ? 1 : 0;
           items.push({ id: 'payments', label: 'My Payments', icon: 'fa-coin', badge: null });
           items.push({ id: 'queries', label: 'My Queries', icon: 'fa-headset', badge: queries.filter(q => q.tenant_id === currentUser.id && q.status === 'open').length });
-          if (myOverdue) {
-            const payItem = items.find(it => it.id === 'payments');
-            if (payItem) payItem.badge = '⚠️ Due';
-          }
         }
 
         sidebarNav.innerHTML = `
@@ -1298,7 +1465,7 @@
         const isOwner = currentUser.role === 'owner';
         const isCaretaker = currentUser.role === 'caretaker';
         const isTenant = currentUser.role === 'tenant';
-        const { units, payments, users } = await getCompanyData();
+        const { buildings, units, payments, users } = await getCompanyData();
 
         const occupied = units.filter(u => u.status === 'occupied').length;
         const vacant = units.filter(u => u.status === 'vacant').length;
@@ -1362,8 +1529,55 @@
         }).join('') || `<div class="empty-state"><i class="fas fa-hotel"></i><p>No units available.</p></div>`;
       }
 
+      // ===== BUILDINGS RENDER =====
+      async function renderBuildings() {
+        const { buildings, users } = await getCompanyData();
+        const isOwner = currentUser.role === 'owner';
+        if (!isOwner) { $('#buildingsGrid').innerHTML = ''; return; }
+
+        $('#buildingsActions').innerHTML = `
+          <button class="btn btn-primary btn-sm" onclick="openCrud('building','add')"><i class="fas fa-plus"></i> Add Building</button>
+          <button class="btn btn-gold btn-sm" onclick="generateSignupKey()"><i class="fas fa-key"></i> Generate Sign‑up Key</button>
+        `;
+
+        if (buildings.length === 0) {
+          $('#buildingsGrid').innerHTML = `<div class="empty-state"><i class="fas fa-building"></i><p>No buildings added yet.</p></div>`;
+          return;
+        }
+
+        $('#buildingsGrid').innerHTML = buildings.map(b => {
+          const caretaker = users.find(u => u.id === b.caretaker_id);
+          return `
+            <div class="building-card">
+              <div class="building-name">${b.name}</div>
+              <div class="building-location"><i class="fas fa-map-pin"></i> ${b.location || 'No location'}</div>
+              <div class="building-stats">
+                <span id="building-stats-${b.id}">Loading...</span>
+              </div>
+              ${caretaker ? `<div class="caretaker-badge"><i class="fas fa-user-tie"></i> Caretaker: ${caretaker.name}</div>` : `<div class="caretaker-badge" style="background:#fce4e4;color:var(--kenya-red);">No caretaker assigned</div>`}
+              <div class="card-actions">
+                <button class="btn btn-edit btn-sm" onclick="openCrud('building','edit','${b.id}')"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="deleteBuilding('${b.id}')"><i class="fas fa-trash"></i></button>
+                <button class="btn btn-outline btn-sm" onclick="openAssignCaretaker('${b.id}')"><i class="fas fa-user-tie"></i> Assign Caretaker</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Update stats for each building
+        const data = await getCompanyData();
+        buildings.forEach(b => {
+          const bUnits = data.units.filter(u => u.building_id === b.id);
+          const occupied = bUnits.filter(u => u.status === 'occupied').length;
+          const total = bUnits.length;
+          const el = document.getElementById(`building-stats-${b.id}`);
+          if (el) el.textContent = `${occupied}/${total} occupied · ${total - occupied} vacant`;
+        });
+      }
+
+      // ===== UNITS RENDER =====
       async function renderUnits() {
-        const { units, users, payments } = await getCompanyData();
+        const { units, users, payments, buildings } = await getCompanyData();
         const isOwner = currentUser.role === 'owner';
         const isCaretaker = currentUser.role === 'caretaker';
         const isTenant = currentUser.role === 'tenant';
@@ -1377,6 +1591,7 @@
           const tenant = users.find(usr => usr.id === u.tenant_id);
           const rentStatus = getRentStatusWithPayments(u, payments);
           const dueBadge = u.tenant_id ? `<span class="due-badge ${rentStatus.badge}">${rentStatus.label}</span>` : '';
+          const building = buildings.find(b => b.id === u.building_id);
           return `
             <div class="unit-card">
               ${getStatusBadge(u.status)}
@@ -1384,6 +1599,7 @@
               <div class="unit-details">
                 <div><i class="fas fa-user"></i> ${tenant ? tenant.name : '—'}</div>
                 <div><i class="fas fa-map-pin"></i> ${u.location}</div>
+                ${building ? `<div><i class="fas fa-building"></i> ${building.name}</div>` : ''}
                 ${u.damage ? `<div><i class="fas fa-exclamation-triangle" style="color:var(--kenya-red);"></i> ${u.damage}</div>` : ''}
               </div>
               <div class="unit-rent"><span class="rent-amount">${formatCurrency(u.rent)} <span>/ month</span></span>
@@ -1403,6 +1619,7 @@
         }).join('') || `<div class="empty-state"><i class="fas fa-hotel"></i><p>No units.</p></div>`;
       }
 
+      // ===== PAYMENTS RENDER =====
       async function renderPayments() {
         const { payments, units, users } = await getCompanyData();
         const isOwner = currentUser.role === 'owner';
@@ -1437,6 +1654,7 @@
         }).join('') || `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">No payments.</td></tr>`;
       }
 
+      // ===== DEPOSITS RENDER (unchanged) =====
       async function renderDeposits() {
         const { units } = await getCompanyData();
         const isOwner = currentUser.role === 'owner';
@@ -1487,6 +1705,7 @@
         `).join('') || `<div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-check-circle" style="color:var(--kenya-green);opacity:1;"></i><p>No damages reported.</p></div>`;
       }
 
+      // ===== QUERIES RENDER =====
       async function renderQueries() {
         const { queries, units } = await getCompanyData();
         const isOwner = currentUser.role === 'owner';
@@ -1532,6 +1751,7 @@
         }).join('') || `<div class="empty-state"><i class="fas fa-inbox"></i><p>No queries.</p></div>`;
       }
 
+      // ===== USERS RENDER =====
       async function renderUsers() {
         const { users } = await getCompanyData();
         const isOwner = currentUser.role === 'owner';
@@ -1555,6 +1775,50 @@
         `).join('') || `<div class="empty-state"><i class="fas fa-users"></i><p>No users.</p></div>`;
       }
 
+      // ===== REPORTS RENDER =====
+      async function renderReports() {
+        const isOwner = currentUser.role === 'owner';
+        if (!isOwner) { $('#reportsContainer').innerHTML = ''; return; }
+
+        const { buildings, units, payments } = await getCompanyData();
+        let html = `<div class="stats-grid" style="margin-bottom:20px;">
+          <div class="stat-card"><div class="stat-label">Total Buildings</div><div class="stat-value">${buildings.length}</div></div>
+          <div class="stat-card"><div class="stat-label">Total Units</div><div class="stat-value">${units.length}</div></div>
+          <div class="stat-card"><div class="stat-label">Total Rent Collected</div><div class="stat-value">${formatCurrency(payments.filter(p=>p.status==='paid').reduce((s,p)=>s+p.amount,0))}</div></div>
+          <div class="stat-card"><div class="stat-label">Pending Rent</div><div class="stat-value" style="color:var(--kenya-red);">${formatCurrency(payments.filter(p=>p.status!=='paid').reduce((s,p)=>s+p.amount,0))}</div></div>
+        </div>`;
+
+        if (buildings.length === 0) {
+          html += `<div class="empty-state"><i class="fas fa-chart-bar"></i><p>No buildings to report.</p></div>`;
+          $('#reportsContainer').innerHTML = html;
+          return;
+        }
+
+        html += `<div class="table-wrap"><table>
+          <thead><tr><th>Building</th><th>Units</th><th>Occupied</th><th>Vacant</th><th>Total Rent</th><th>Collected</th><th>Pending</th></tr></thead>
+          <tbody>`;
+        buildings.forEach(b => {
+          const bUnits = units.filter(u => u.building_id === b.id);
+          const occupied = bUnits.filter(u => u.status === 'occupied').length;
+          const vacant = bUnits.length - occupied;
+          const totalRent = bUnits.reduce((s, u) => s + u.rent, 0);
+          const collected = payments.filter(p => p.status === 'paid' && bUnits.some(u => u.id === p.unit_id)).reduce((s, p) => s + p
+            .amount, 0);
+          const pending = totalRent - collected;
+          html += `<tr>
+            <td><strong>${b.name}</strong></td>
+            <td>${bUnits.length}</td>
+            <td>${occupied}</td>
+            <td>${vacant}</td>
+            <td>${formatCurrency(totalRent)}</td>
+            <td>${formatCurrency(collected)}</td>
+            <td style="color:${pending > 0 ? 'var(--kenya-red)' : 'var(--kenya-green)'};">${formatCurrency(pending)}</td>
+          </tr>`;
+        });
+        html += `</tbody></table></div>`;
+        $('#reportsContainer').innerHTML = html;
+      }
+
       // ================================================================
       // NAVIGATION
       // ================================================================
@@ -1563,14 +1827,16 @@
         Object.keys(views).forEach(key => views[key].classList.toggle('active', key === view));
         sidebarNav.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.view === view));
         closeSidebar();
-        const titles = { dashboard: 'Dashboard', units: 'Units', payments: 'Payments', deposits: 'Deposits & Damages', queries: 'Queries', users: 'Team' };
+        const titles = { dashboard: 'Dashboard', buildings: 'Buildings', units: 'Units', payments: 'Payments', deposits: 'Deposits & Damages', queries: 'Queries', users: 'Team', reports: 'Reports' };
         pageTitle.textContent = titles[view] || 'Dashboard';
         if (view === 'dashboard') renderDashboard();
+        else if (view === 'buildings') renderBuildings();
         else if (view === 'units') renderUnits();
         else if (view === 'payments') renderPayments();
         else if (view === 'deposits') renderDeposits();
         else if (view === 'queries') renderQueries();
         else if (view === 'users') renderUsers();
+        else if (view === 'reports') renderReports();
       }
 
       // ================================================================
@@ -1588,22 +1854,44 @@
         const fields = $('#crudFormFields');
         const submit = $('#crudSubmitBtn');
 
-        const { units, users } = await getCompanyData();
+        const { buildings, units, users } = await getCompanyData();
 
         let html = '';
         let entity = null;
         if (mode === 'edit' && id) {
-          if (type === 'unit') entity = units.find(u => u.id === id);
+          if (type === 'building') entity = buildings.find(b => b.id === id);
+          else if (type === 'unit') entity = units.find(u => u.id === id);
           else if (type === 'payment') entity = (await supabase.from('payments').select('*').eq('id', id).single()).data;
           else if (type === 'user') entity = users.find(u => u.id === id);
         }
 
-        if (type === 'unit') {
+        if (type === 'building') {
+          title.textContent = mode === 'add' ? 'Add Building' : 'Edit Building';
+          html = `
+            <div class="form-group"><label>Building Name</label><input type="text" id="f_building_name" value="${entity ? entity.name : ''}" required /></div>
+            <div class="form-group"><label>Location</label><input type="text" id="f_building_location" value="${entity ? entity.location : ''}" /></div>
+          `;
+          submit.onclick = async (e) => {
+            e.preventDefault();
+            const data = {
+              name: $('#f_building_name').value,
+              location: $('#f_building_location').value,
+              caretakerId: entity ? entity.caretaker_id : null
+            };
+            if (mode === 'add') await addBuilding(data);
+            else await updateBuilding(id, data);
+            closeModal('#crudModal');
+          };
+        } else if (type === 'unit') {
           title.textContent = mode === 'add' ? 'Add Unit' : 'Edit Unit';
+          const buildingOpts = buildings.map(b =>
+            `<option value="${b.id}" ${entity && entity.building_id === b.id ? 'selected' : ''}>${b.name}</option>`
+          ).join('');
           const tenantOpts = users.filter(u => u.role === 'tenant' && (u.unit_id === null || u.unit_id === id)).map(u =>
             `<option value="${u.id}" ${entity && entity.tenant_id === u.id ? 'selected' : ''}>${u.name} (${u.email})</option>`
           ).join('');
           html = `
+            <div class="form-group"><label>Building</label><select id="f_unit_building">${buildingOpts}</select></div>
             <div class="form-group"><label>Unit Number</label><input type="text" id="f_unit_number" value="${entity ? entity.number : ''}" required /></div>
             <div class="form-group"><label>Location</label><input type="text" id="f_unit_location" value="${entity ? entity.location : ''}" required /></div>
             <div class="form-group"><label>Rent (KSh)</label><input type="number" id="f_unit_rent" value="${entity ? entity.rent : ''}" required /></div>
@@ -1615,7 +1903,10 @@
           `;
           submit.onclick = async (e) => {
             e.preventDefault();
+            const buildingId = $('#f_unit_building').value;
+            if (!buildingId) { showToast('❌ Please select a building.', 'fa-exclamation-circle'); return; }
             const data = {
+              buildingId: buildingId,
               number: $('#f_unit_number').value,
               location: $('#f_unit_location').value,
               rent: parseInt($('#f_unit_rent').value),
@@ -1630,6 +1921,7 @@
             closeModal('#crudModal');
           };
         } else if (type === 'payment') {
+          // same as before
           title.textContent = mode === 'add' ? 'Add Payment' : 'Edit Payment';
           const unitOpts = units.map(u =>
             `<option value="${u.id}" ${entity && entity.unit_id === u.id ? 'selected' : ''}>${u.number}</option>`).join('');
@@ -1656,6 +1948,7 @@
             closeModal('#crudModal');
           };
         } else if (type === 'user') {
+          // same as before
           title.textContent = mode === 'add' ? 'Add User' : 'Edit User';
           html = `
             <div class="form-group"><label>Full Name</label><input type="text" id="f_user_name" value="${entity ? entity.name : ''}" required /></div>
@@ -1684,8 +1977,51 @@
         modal.classList.add('active');
       };
 
+      // ===== ASSIGN CARETAKER MODAL =====
+      window.openAssignCaretaker = async function(buildingId) {
+        const { users } = await getCompanyData();
+        const caretakers = users.filter(u => u.role === 'caretaker');
+        if (caretakers.length === 0) {
+          showToast('❌ No caretaker users found. Create a caretaker first.', 'fa-exclamation-circle');
+          return;
+        }
+        // Simple prompt with select
+        const selectHtml = caretakers.map(u =>
+          `<option value="${u.id}">${u.name} (${u.email})</option>`
+        ).join('');
+        const html = `
+          <div class="form-group">
+            <label>Select Caretaker</label>
+            <select id="assign_caretaker_select">
+              <option value="">— Unassign —</option>
+              ${selectHtml}
+            </select>
+          </div>
+          <button class="btn btn-primary w-full" onclick="confirmAssignCaretaker('${buildingId}')"><i class="fas fa-check"></i> Assign</button>
+        `;
+        // Show a temporary modal
+        const modal = $('#crudModal');
+        $('#crudModalTitle').textContent = 'Assign Caretaker';
+        $('#crudFormFields').innerHTML = html;
+        $('#crudSubmitBtn').style.display = 'none';
+        modal.classList.add('active');
+        // Store building id
+        modal.dataset.buildingId = buildingId;
+      };
+
+      window.confirmAssignCaretaker = async function(buildingId) {
+        const caretakerId = document.getElementById('assign_caretaker_select').value || null;
+        await assignCaretaker(buildingId, caretakerId);
+        closeModal('#crudModal');
+        $('#crudSubmitBtn').style.display = 'flex';
+      };
+
       function closeModal(selector) {
         document.querySelector(selector).classList.remove('active');
+        // reset
+        if (selector === '#crudModal') {
+          $('#crudSubmitBtn').style.display = 'flex';
+        }
       }
 
       // ================================================================
@@ -1696,9 +2032,11 @@
           .channel('public:companies')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'companies' }, () => renderAll())
           .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => renderAll())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'buildings' }, () => renderAll())
           .on('postgres_changes', { event: '*', schema: 'public', table: 'units' }, () => renderAll())
           .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, () => renderAll())
           .on('postgres_changes', { event: '*', schema: 'public', table: 'queries' }, () => renderAll())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'signup_keys' }, () => renderAll())
           .subscribe();
       }
 
@@ -1708,11 +2046,13 @@
       async function renderAll() {
         await renderSidebar();
         await renderDashboard();
+        await renderBuildings();
         await renderUnits();
         await renderPayments();
         await renderDeposits();
         await renderQueries();
         await renderUsers();
+        await renderReports();
         updateDate();
       }
 
@@ -1749,10 +2089,16 @@
           regCompanyGroup.classList.remove('hidden');
           regCodeGroup.classList.add('hidden');
           regTillGroup.classList.remove('hidden');
+        } else if (regRole.value === 'caretaker') {
+          regCompanyGroup.classList.add('hidden');
+          regCodeGroup.classList.remove('hidden');
+          regTillGroup.classList.add('hidden');
+          document.querySelector('#regCodeGroup label').textContent = 'Sign‑up Key';
         } else {
           regCompanyGroup.classList.add('hidden');
           regCodeGroup.classList.remove('hidden');
           regTillGroup.classList.add('hidden');
+          document.querySelector('#regCodeGroup label').textContent = 'Company Code';
         }
       });
 
@@ -1879,17 +2225,21 @@
         app.classList.remove('visible');
       });
 
-      console.log('🚀 RentalPro with Supabase – ready to go!');
-      console.log('💡 Register a new account first, then login.');
+      console.log('🚀 RentalPro with Buildings, Caretaker Keys, and Reports!');
+      console.log('💡 Register a new owner first, then add buildings and units.');
 
       // Expose functions globally for onclick
       window.openMpesa = openMpesa;
       window.openCrud = openCrud;
+      window.openAssignCaretaker = openAssignCaretaker;
+      window.confirmAssignCaretaker = confirmAssignCaretaker;
+      window.deleteBuilding = deleteBuilding;
       window.deleteUnit = deleteUnit;
       window.deletePayment = deletePayment;
       window.deleteUser = deleteUser;
       window.resolveQuery = resolveQuery;
       window.deleteQuery = deleteQuery;
+      window.generateSignupKey = generateSignupKey;
       window.showToast = showToast;
 
     })();
