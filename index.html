@@ -424,6 +424,54 @@
     }
     .sidebar-overlay.active { display: block; }
 
+    /* ===== HELP / INSTRUCTIONS STYLES ===== */
+    .help-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 16px;
+    }
+    .help-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 24px;
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
+    .help-card:hover { box-shadow: var(--shadow-md); }
+    .help-card h4 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--kenya-green);
+    }
+    .help-card h4 i { margin-right: 8px; }
+    .help-card ul, .help-card ol {
+      padding-left: 20px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+    .help-card li { margin-bottom: 4px; }
+    .help-card .highlight {
+      background: #f0f7f0;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--kenya-green);
+      margin-top: 8px;
+    }
+    .help-card .highlight code {
+      background: #e8e8e8;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    @media (max-width: 768px) {
+      .help-grid { grid-template-columns: 1fr; }
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
     @media (max-width: 768px) {
@@ -681,6 +729,15 @@
         </div>
         <div id="reportsContainer"></div>
       </section>
+
+      <!-- ===== NEW: HELP / INSTRUCTIONS VIEW ===== -->
+      <section class="view" id="view-help">
+        <div class="section-header" style="margin-top:4px;">
+          <h3><i class="fas fa-question-circle"></i> Help &amp; Instructions</h3>
+          <span style="font-size:13px; color:var(--text-muted);">Learn how to use RentalPro</span>
+        </div>
+        <div id="helpContent"></div>
+      </section>
     </div>
   </div>
 
@@ -793,7 +850,8 @@
         deposits: $('#view-deposits'),
         queries: $('#view-queries'),
         users: $('#view-users'),
-        reports: $('#view-reports')
+        reports: $('#view-reports'),
+        help: $('#view-help')
       };
 
       const mpesaModal = $('#mpesaModal');
@@ -1114,7 +1172,6 @@
 
       async function deleteBuilding(id) {
         if (!confirm('Delete this building and all its units?')) return;
-        // Delete units first (cascade would handle, but we do explicitly)
         await supabase.from('units').delete().eq('building_id', id);
         const { error } = await supabase.from('buildings').delete().eq('id', id);
         if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
@@ -1122,19 +1179,16 @@
         renderAll();
       }
 
-      // ===== FIXED ADD UNIT =====
       async function addUnit(data) {
-        // Ensure building_id is provided
         if (!data.buildingId) {
           showToast('❌ Please select a building.', 'fa-exclamation-circle');
           return;
         }
-        // Generate a unique ID for the unit
         const unitId = generateId();
         const { error } = await supabase
           .from('units')
           .insert({
-            id: unitId,  // <-- FIX: provide primary key
+            id: unitId,
             company_id: currentCompany.id,
             building_id: data.buildingId,
             number: data.number,
@@ -1219,7 +1273,7 @@
       }
 
       // ================================================================
-      // PAYMENTS CRUD (kept from before)
+      // PAYMENTS CRUD
       // ================================================================
       async function addPayment(data) {
         const { error } = await supabase
@@ -1264,7 +1318,7 @@
       }
 
       // ================================================================
-      // USER CRUD (Admin only)
+      // USER CRUD (Admin only) – FIXED: removed password
       // ================================================================
       async function addUser(data) {
         const { error } = await supabase
@@ -1273,7 +1327,6 @@
             company_id: currentCompany.id,
             name: data.name,
             email: data.email,
-            password: data.password,
             role: data.role,
             phone: data.phone || '',
             unit_id: data.unitId || null
@@ -1432,13 +1485,16 @@
           items.push({ id: 'queries', label: 'Queries', icon: 'fa-headset', badge: queries.filter(q => q.status === 'open').length });
           items.push({ id: 'users', label: 'Team', icon: 'fa-users', badge: null });
           items.push({ id: 'reports', label: 'Reports', icon: 'fa-chart-bar', badge: null });
+          items.push({ id: 'help', label: 'Help', icon: 'fa-question-circle', badge: null });
         } else if (isCaretaker) {
           items.push({ id: 'units', label: 'Units', icon: 'fa-hotel', badge: units.length });
           items.push({ id: 'payments', label: 'Payments', icon: 'fa-coin', badge: payments.filter(p => p.status !== 'paid').length });
           items.push({ id: 'queries', label: 'Queries', icon: 'fa-headset', badge: queries.filter(q => q.status === 'open').length });
+          items.push({ id: 'help', label: 'Help', icon: 'fa-question-circle', badge: null });
         } else if (isTenant) {
           items.push({ id: 'payments', label: 'My Payments', icon: 'fa-coin', badge: null });
           items.push({ id: 'queries', label: 'My Queries', icon: 'fa-headset', badge: queries.filter(q => q.tenant_id === currentUser.id && q.status === 'open').length });
+          items.push({ id: 'help', label: 'Help', icon: 'fa-question-circle', badge: null });
         }
 
         sidebarNav.innerHTML = `
@@ -1460,6 +1516,155 @@
         userRole.textContent = currentUser.role;
       }
 
+      // ================================================================
+      // HELP CONTENT
+      // ================================================================
+      function renderHelp() {
+        const role = currentUser ? currentUser.role : 'guest';
+        let html = '';
+
+        html += `
+          <div style="background:var(--bg-card); border-radius:var(--radius); padding:24px; margin-bottom:24px; border-left:4px solid var(--kenya-gold);">
+            <h3 style="font-size:20px; font-weight:600; color:var(--kenya-green);"><i class="fas fa-lightbulb"></i> Welcome to RentalPro!</h3>
+            <p style="color:var(--text-secondary); margin-top:8px;">This guide will help you get started with the app. Select your role below for specific instructions.</p>
+          </div>
+        `;
+
+        if (role === 'owner') {
+          html += `
+            <div class="help-grid">
+              <div class="help-card">
+                <h4><i class="fas fa-building"></i> Getting Started</h4>
+                <ol>
+                  <li><strong>Add a Building</strong> – Go to <strong>Buildings</strong> → click <em>“Add Building”</em> and enter the name and location.</li>
+                  <li><strong>Add Units</strong> – In the <strong>Units</strong> tab, click <em>“Add Unit”</em>, select the building, fill unit details, and save.</li>
+                  <li><strong>Assign Tenants</strong> – When adding/editing a unit, you can assign a tenant from the dropdown (tenants must be registered first).</li>
+                </ol>
+              </div>
+
+              <div class="help-card">
+                <h4><i class="fas fa-key"></i> Managing Caretakers</h4>
+                <ol>
+                  <li><strong>Generate a sign‑up key</strong> – In <strong>Buildings</strong>, click <em>“Generate Sign‑up Key”</em>. The key is copied to your clipboard.</li>
+                  <li><strong>Share the key</strong> – Give the key to a caretaker so they can register with the “Caretaker” role.</li>
+                  <li><strong>Assign caretaker</strong> – On a building card, click <em>“Assign Caretaker”</em> and select a registered caretaker.</li>
+                </ol>
+                <div class="highlight"><i class="fas fa-info-circle"></i> Caretakers cannot register without a valid key.</div>
+              </div>
+
+              <div class="help-card">
+                <h4><i class="fas fa-users"></i> Team &amp; Tenants</h4>
+                <ul>
+                  <li><strong>Add users</strong> – In <strong>Team</strong>, you can manually add caretakers or tenants (they’ll get credentials).</li>
+                  <li><strong>Tenant registration</strong> – Tenants can register themselves using your <strong>Company Code</strong> (shown in sidebar).</li>
+                  <li><strong>M‑Pesa Till</strong> – Your company’s till number is shown in the sidebar; tenants pay rent to this number.</li>
+                </ul>
+              </div>
+
+              <div class="help-card">
+                <h4><i class="fas fa-chart-bar"></i> Reports &amp; Payments</h4>
+                <ul>
+                  <li><strong>Reports</strong> – The <strong>Reports</strong> tab shows occupancy rates and rent collection per building.</li>
+                  <li><strong>Payments</strong> – View all payments, mark as paid/unpaid, or add manual payments.</li>
+                  <li><strong>Overdue rent</strong> – Units with overdue rent show a red “Overdue” badge.</li>
+                </ul>
+                <div class="highlight"><i class="fas fa-money-bill-wave"></i> Rent due date is set per unit (default: 5th of each month).</div>
+              </div>
+            </div>
+          `;
+        } else if (role === 'caretaker') {
+          html += `
+            <div class="help-grid">
+              <div class="help-card">
+                <h4><i class="fas fa-tools"></i> Your Role</h4>
+                <ul>
+                  <li>As a caretaker, you can <strong>manage units</strong>, record payments, and respond to tenant queries.</li>
+                  <li>You <strong>cannot</strong> add buildings or generate sign‑up keys – those are for the owner.</li>
+                  <li>You are assigned to a specific building by the owner.</li>
+                </ul>
+              </div>
+
+              <div class="help-card">
+                <h4><i class="fas fa-hotel"></i> Managing Units</h4>
+                <ul>
+                  <li>In <strong>Units</strong>, you can view all units and their current status.</li>
+                  <li>You can edit unit details (rent, status, tenant) and record damages.</li>
+                  <li>When a unit becomes vacant, update its status to “Vacant”.</li>
+                </ul>
+              </div>
+
+              <div class="help-card">
+                <h4><i class="fas fa-coin"></i> Payments &amp; Queries</h4>
+                <ul>
+                  <li>In <strong>Payments</strong>, you can add or edit payment records manually.</li>
+                  <li>Tenants can pay rent via M‑PESA – the payment is recorded automatically.</li>
+                  <li>In <strong>Queries</strong>, you can view tenant requests and mark them as resolved.</li>
+                </ul>
+              </div>
+
+              <div class="help-card">
+                <h4><i class="fas fa-question-circle"></i> Need Help?</h4>
+                <ul>
+                  <li>If you encounter issues, contact your owner for assistance.</li>
+                  <li>Ensure you log out after each session for security.</li>
+                  <li>Use the <strong>Help</strong> tab anytime to revisit these instructions.</li>
+                </ul>
+              </div>
+            </div>
+          `;
+        } else if (role === 'tenant') {
+          html += `
+            <div class="help-grid">
+              <div class="help-card">
+                <h4><i class="fas fa-home"></i> Your Dashboard</h4>
+                <ul>
+                  <li>Your dashboard shows your unit details, rent amount, and payment status.</li>
+                  <li>If your rent is overdue, you’ll see a red “⚠️ Due” badge.</li>
+                  <li>You can view your payment history in the <strong>My Payments</strong> section.</li>
+                </ul>
+              </div>
+
+              <div class="help-card">
+                <h4><i class="fas fa-mobile-alt"></i> Paying Rent via M‑PESA</h4>
+                <ol>
+                  <li>On your unit card, click <strong>“Pay Rent”</strong>.</li>
+                  <li>Confirm the amount and the owner’s Till number.</li>
+                  <li>Enter your phone number (254 format) and click <strong>“Pay Now”</strong>.</li>
+                  <li>You’ll receive a prompt on your phone to confirm the payment.</li>
+                  <li>After successful payment, your rent status updates automatically.</li>
+                </ol>
+                <div class="highlight"><i class="fas fa-info-circle"></i> Ensure your phone number is correct to receive the prompt.</div>
+              </div>
+
+              <div class="help-card">
+                <h4><i class="fas fa-headset"></i> Submitting Queries</h4>
+                <ul>
+                  <li>Go to <strong>My Queries</strong> → fill the form with your issue (maintenance, rent, deposit, etc.).</li>
+                  <li>Your name and unit are pre‑filled for you.</li>
+                  <li>The caretaker or owner will respond and mark the query as resolved.</li>
+                </ul>
+              </div>
+
+              <div class="help-card">
+                <h4><i class="fas fa-question-circle"></i> Still Need Help?</h4>
+                <ul>
+                  <li>Contact your caretaker or owner directly for urgent issues.</li>
+                  <li>You can also use the query system for non‑urgent requests.</li>
+                  <li>Check this <strong>Help</strong> page anytime for guidance.</li>
+                </ul>
+              </div>
+            </div>
+          `;
+        } else {
+          html += `<div class="empty-state"><i class="fas fa-user"></i><p>Please log in to see role‑specific help.</p></div>`;
+        }
+
+        $('#helpContent').innerHTML = html;
+      }
+
+      // ================================================================
+      // RENDER FUNCTIONS (existing)
+      // ================================================================
       async function renderDashboard() {
         if (!currentUser) return;
         const isOwner = currentUser.role === 'owner';
@@ -1654,7 +1859,7 @@
         }).join('') || `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">No payments.</td></tr>`;
       }
 
-      // ===== DEPOSITS RENDER (unchanged) =====
+      // ===== DEPOSITS RENDER =====
       async function renderDeposits() {
         const { units } = await getCompanyData();
         const isOwner = currentUser.role === 'owner';
@@ -1827,7 +2032,7 @@
         Object.keys(views).forEach(key => views[key].classList.toggle('active', key === view));
         sidebarNav.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.view === view));
         closeSidebar();
-        const titles = { dashboard: 'Dashboard', buildings: 'Buildings', units: 'Units', payments: 'Payments', deposits: 'Deposits & Damages', queries: 'Queries', users: 'Team', reports: 'Reports' };
+        const titles = { dashboard: 'Dashboard', buildings: 'Buildings', units: 'Units', payments: 'Payments', deposits: 'Deposits & Damages', queries: 'Queries', users: 'Team', reports: 'Reports', help: 'Help' };
         pageTitle.textContent = titles[view] || 'Dashboard';
         if (view === 'dashboard') renderDashboard();
         else if (view === 'buildings') renderBuildings();
@@ -1837,6 +2042,7 @@
         else if (view === 'queries') renderQueries();
         else if (view === 'users') renderUsers();
         else if (view === 'reports') renderReports();
+        else if (view === 'help') renderHelp();
       }
 
       // ================================================================
@@ -1921,7 +2127,6 @@
             closeModal('#crudModal');
           };
         } else if (type === 'payment') {
-          // same as before
           title.textContent = mode === 'add' ? 'Add Payment' : 'Edit Payment';
           const unitOpts = units.map(u =>
             `<option value="${u.id}" ${entity && entity.unit_id === u.id ? 'selected' : ''}>${u.number}</option>`).join('');
@@ -1948,12 +2153,11 @@
             closeModal('#crudModal');
           };
         } else if (type === 'user') {
-          // same as before
+          // Removed password field – admin adds user without setting password
           title.textContent = mode === 'add' ? 'Add User' : 'Edit User';
           html = `
             <div class="form-group"><label>Full Name</label><input type="text" id="f_user_name" value="${entity ? entity.name : ''}" required /></div>
             <div class="form-group"><label>Email</label><input type="email" id="f_user_email" value="${entity ? entity.email : ''}" required /></div>
-            <div class="form-group"><label>Password</label><input type="password" id="f_user_password" value="${entity ? entity.password : ''}" required minlength="6" /></div>
             <div class="form-group"><label>Phone (M-PESA)</label><input type="tel" id="f_user_phone" value="${entity ? entity.phone || '' : ''}" placeholder="254712345678" /></div>
             <div class="form-group"><label>Role</label><select id="f_user_role"><option value="caretaker" ${entity && entity.role === 'caretaker' ? 'selected' : ''}>Caretaker</option><option value="tenant" ${entity && entity.role === 'tenant' ? 'selected' : ''}>Tenant</option></select></div>
             ${mode === 'edit' && entity && entity.role === 'tenant' ? `<div class="form-group"><label>Unit</label><select id="f_user_unit"><option value="">— None —</option>${units.map(u=>`<option value="${u.id}" ${entity.unit_id === u.id ? 'selected' : ''}>${u.number}</option>`).join('')}</select></div>` : ''}
@@ -1963,7 +2167,6 @@
             const data = {
               name: $('#f_user_name').value,
               email: $('#f_user_email').value,
-              password: $('#f_user_password').value,
               phone: $('#f_user_phone').value || '',
               role: $('#f_user_role').value,
               unitId: $('#f_user_unit') ? $('#f_user_unit').value || null : null
@@ -1985,7 +2188,6 @@
           showToast('❌ No caretaker users found. Create a caretaker first.', 'fa-exclamation-circle');
           return;
         }
-        // Simple prompt with select
         const selectHtml = caretakers.map(u =>
           `<option value="${u.id}">${u.name} (${u.email})</option>`
         ).join('');
@@ -1999,13 +2201,11 @@
           </div>
           <button class="btn btn-primary w-full" onclick="confirmAssignCaretaker('${buildingId}')"><i class="fas fa-check"></i> Assign</button>
         `;
-        // Show a temporary modal
         const modal = $('#crudModal');
         $('#crudModalTitle').textContent = 'Assign Caretaker';
         $('#crudFormFields').innerHTML = html;
         $('#crudSubmitBtn').style.display = 'none';
         modal.classList.add('active');
-        // Store building id
         modal.dataset.buildingId = buildingId;
       };
 
@@ -2018,7 +2218,6 @@
 
       function closeModal(selector) {
         document.querySelector(selector).classList.remove('active');
-        // reset
         if (selector === '#crudModal') {
           $('#crudSubmitBtn').style.display = 'flex';
         }
@@ -2053,6 +2252,7 @@
         await renderQueries();
         await renderUsers();
         await renderReports();
+        await renderHelp();
         updateDate();
       }
 
@@ -2225,8 +2425,9 @@
         app.classList.remove('visible');
       });
 
-      console.log('🚀 RentalPro with Buildings, Caretaker Keys, and Reports!');
+      console.log('🚀 RentalPro with Buildings, Caretaker Keys, Reports, and Help!');
       console.log('💡 Register a new owner first, then add buildings and units.');
+      console.log('✅ Password column error fixed – removed from user insert.');
 
       // Expose functions globally for onclick
       window.openMpesa = openMpesa;
