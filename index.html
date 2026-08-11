@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Explicit CSP allowing eval and inline scripts/styles -->
+  <meta http-equiv="Content-Security-Policy" content="
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net;
+    style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+    font-src 'self' https://cdnjs.cloudflare.com;
+    connect-src 'self' https://kmfxnetauisbbhijjseo.supabase.co;
+  ">
+  <title>RentalPro Kenya · Supabase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* ===== CSS (full styles – unchanged) ===== */
+    :root {
+      --kenya-green: #1a5c2a;
+      --kenya-red: #a81010;
+      --kenya-gold: #d4a017;
+      --kenya-black: #1a1a1a;
+      --kenya-white: #faf7f2;
+      --bg-main: #f0ebe4;
+      --bg-card: #ffffff;
+      --text-primary: #1e1e1e;
+      --text-secondary: #4a4a4a;
+      --text-muted: #7a7a7a;
+      --border-light: #e8e0d8;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.12);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --sidebar-width: 260px;
+      --header-height: 72px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg-main); color: var(--text-primary); min-height: 100vh; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: inherit; border: none; background: none; }
+    input, select, textarea { font-family: inherit; outline: none; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-main); }
+    ::-webkit-scrollbar-thumb { background: var(--kenya-green); border-radius: 10px; }
+
+    /* ===== LOGIN PAGE ===== */
+    #loginPage {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #0f2a18 0%, #1a3d2a 40%, #2a5a3a 100%);
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+    #loginPage.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    .login-container {
+      background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius); padding: 40px 36px; width: 100%; max-width: 440px;
+      border: 1px solid rgba(255,255,255,0.10); box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+      position: relative; overflow: hidden;
+    }
+    .login-container::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(to right, var(--kenya-black) 25%, var(--kenya-red) 25%, var(--kenya-red) 50%, var(--kenya-gold) 50%, var(--kenya-gold) 75%, var(--kenya-green) 75%);
+    }
+    .login-brand { text-align: center; margin-bottom: 28px; }
+    .login-brand .logo-icon {
+      width: 64px; height: 64px; background: linear-gradient(135deg, var(--kenya-green), var(--kenya-gold));
+      border-radius: 16px; display: inline-flex; align-items: center; justify-content: center;
+      font-size: 28px; color: #fff; margin-bottom: 12px; box-shadow: 0 8px 24px rgba(26,92,42,0.3);
+    }
+    .login-brand h1 { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+    .login-brand h1 span { color: var(--kenya-gold); }
+    .login-brand p { color: rgba(255,255,255,0.5); font-size: 14px; margin-top: 4px; }
+    .login-form .form-group { margin-bottom: 16px; }
+    .login-form label { display: block; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
+    .login-form input {
+      width: 100%; padding: 14px 18px; border-radius: var(--radius-sm);
+      border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06);
+      color: #fff; font-size: 15px; transition: var(--transition);
+    }
+    .login-form input::placeholder { color: rgba(255,255,255,0.3); }
+    .login-form input:focus {
+      border-color: var(--kenya-gold); background: rgba(255,255,255,0.10);
+      box-shadow: 0 0 0 3px rgba(212,160,23,0.15);
+    }
+    .login-form .login-btn {
+      width: 100%; padding: 14px; border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--kenya-green), #0f4a1f);
+      color: #fff; font-weight: 700; font-size: 16px; transition: var(--transition);
+      margin-top: 6px; border: none; display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .login-form .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(26,92,42,0.4); }
+    .login-error { color: #ff6b6b; font-size: 13px; text-align: center; margin-top: 12px; min-height: 20px; }
+    .login-footer-actions {
+      display: flex; justify-content: space-between; align-items: center; margin-top: 18px;
+      padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .login-footer-actions .register-link { color: var(--kenya-gold); font-weight: 600; font-size: 14px; cursor: pointer; transition: var(--transition); }
+    .login-footer-actions .register-link:hover { opacity: 0.8; }
+    .login-footer-actions .demo-hint { font-size: 11px; color: rgba(255,255,255,0.3); cursor: pointer; }
+
+    /* ===== REGISTER MODAL ===== */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 99999;
+      display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: var(--bg-card); border-radius: var(--radius); max-width: 540px; width: 100%;
+      max-height: 90vh; overflow-y: auto; padding: 32px 30px; box-shadow: var(--shadow-lg);
+      position: relative; animation: fadeUp 0.3s ease;
+    }
+    .modal-box .modal-close {
+      position: absolute; top: 16px; right: 20px; font-size: 24px;
+      color: var(--text-muted); transition: var(--transition);
+    }
+    .modal-box .modal-close:hover { color: var(--kenya-red); transform: rotate(90deg); }
+    .modal-box h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .modal-box .modal-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 22px; }
+    .modal-box .form-group { margin-bottom: 16px; }
+    .modal-box label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 5px; }
+    .modal-box input, .modal-box select {
+      width: 100%; padding: 12px 16px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border-light); font-size: 14px; transition: var(--transition);
+      background: #fff; color: var(--text-primary);
+    }
+    .modal-box input:focus, .modal-box select:focus {
+      border-color: var(--kenya-green); box-shadow: 0 0 0 3px rgba(26,92,42,0.1);
+    }
+    .modal-box .btn-primary { width: 100%; justify-content: center; padding: 14px; }
+    .modal-box .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 500px) { .modal-box .form-row { grid-template-columns: 1fr; } }
+
+    /* ===== MAIN APP ===== */
+    #app { display: none; min-height: 100vh; }
+    #app.visible { display: flex; }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: var(--sidebar-width); height: 100vh; background: var(--kenya-black);
+      color: #fff; position: fixed; top: 0; left: 0; z-index: 1000;
+      padding: 24px 18px; display: flex; flex-direction: column;
+      transition: transform 0.3s ease; overflow-y: auto; border-right: 3px solid var(--kenya-gold);
+    }
+    .sidebar-brand {
+      display: flex; flex-direction: column; gap: 4px; padding-bottom: 28px;
+      border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 28px;
+    }
+    .sidebar-brand .brand-top { display: flex; align-items: center; gap: 12px; }
+    .sidebar-brand .logo-icon {
+      width: 44px; height: 44px; background: linear-gradient(135deg, var(--kenya-green), var(--kenya-gold));
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; color: #fff; flex-shrink: 0;
+    }
+    .sidebar-brand h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.2; }
+    .sidebar-brand h1 span { color: var(--kenya-gold); }
+    .sidebar-brand .company-name { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.7); margin-top: 4px; }
+    .sidebar-brand .company-till {
+      font-size: 12px; color: var(--kenya-gold); background: rgba(212,160,23,0.12);
+      padding: 2px 12px; border-radius: 30px; width: fit-content; margin-top: 4px;
+      border: 1px solid rgba(212,160,23,0.15);
+    }
+    .sidebar-brand .company-code {
+      display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--kenya-gold);
+      background: rgba(212,160,23,0.12); padding: 4px 12px 4px 10px; border-radius: 30px;
+      width: fit-content; margin-top: 4px; border: 1px solid rgba(212,160,23,0.15);
+    }
+    .sidebar-brand .company-code .copy-btn {
+      background: none; border: none; color: var(--kenya-gold); font-size: 12px;
+      cursor: pointer; padding: 0 4px; transition: var(--transition);
+    }
+    .sidebar-brand .company-code .copy-btn:hover { opacity: 0.7; }
+
+    .sidebar-nav { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .sidebar-nav .nav-label {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px;
+      color: rgba(255,255,255,0.3); padding: 12px 14px 6px; font-weight: 600;
+    }
+    .sidebar-nav .nav-item {
+      display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+      border-radius: var(--radius-sm); color: rgba(255,255,255,0.6);
+      font-weight: 500; font-size: 14px; transition: var(--transition); cursor: pointer;
+    }
+    .sidebar-nav .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    .sidebar-nav .nav-item.active {
+      background: rgba(26,92,42,0.3); color: #fff; box-shadow: inset 3px 0 0 var(--kenya-gold);
+    }
+    .sidebar-nav .nav-item i { width: 22px; font-size: 16px; text-align: center; flex-shrink: 0; }
+    .sidebar-nav .nav-item .badge {
+      margin-left: auto; background: var(--kenya-red); color: #fff;
+      font-size: 10px; padding: 2px 10px; border-radius: 20px; font-weight: 600;
+    }
+    .sidebar-footer {
+      padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06);
+      margin-top: auto; font-size: 12px; color: rgba(255,255,255,0.3); text-align: center;
+    }
+    .sidebar-footer .flag { font-size: 18px; letter-spacing: 2px; }
+    .sidebar-footer .logout-btn {
+      margin-top: 12px; padding: 8px 16px; border-radius: 30px;
+      background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);
+      font-size: 12px; font-weight: 500; transition: var(--transition);
+      width: 100%; border: 1px solid rgba(255,255,255,0.06);
+    }
+    .sidebar-footer .logout-btn:hover { background: rgba(168,16,16,0.2); color: #fff; border-color: var(--kenya-red); }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content { margin-left: var(--sidebar-width); flex: 1; min-height: 100vh; padding: 0 32px 40px; width: 100%; }
+    .header {
+      height: var(--header-height); display: flex; align-items: center; justify-content: space-between;
+      padding: 0 4px; border-bottom: 1px solid var(--border-light);
+      background: var(--bg-main); position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(12px); background: rgba(240,235,228,0.85);
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-left .menu-toggle { display: none; font-size: 22px; color: var(--text-primary); padding: 4px; }
+    .header-left h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+    .header-left h2 span { color: var(--kenya-green); }
+    .header-right { display: flex; align-items: center; gap: 18px; }
+    .header-right .date-badge {
+      font-size: 13px; color: var(--text-secondary); background: var(--bg-card);
+      padding: 6px 16px; border-radius: 30px; box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light); font-weight: 500;
+    }
+    .header-right .profile {
+      display: flex; align-items: center; gap: 10px; padding: 4px 12px 4px 4px;
+      border-radius: 40px; background: var(--bg-card); border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm); transition: var(--transition);
+    }
+    .header-right .profile:hover { border-color: var(--kenya-gold); }
+    .header-right .profile .avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--kenya-green), var(--kenya-gold));
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 600; font-size: 14px; flex-shrink: 0;
+    }
+    .header-right .profile .name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+    .header-right .profile .role { font-size: 11px; color: var(--text-muted); text-transform: capitalize; }
+    .kenyan-flag-strip {
+      height: 4px; background: linear-gradient(to right, var(--kenya-black) 25%, var(--kenya-red) 25%, var(--kenya-red) 50%, var(--kenya-gold) 50%, var(--kenya-gold) 75%, var(--kenya-green) 75%);
+      border-radius: 0 0 4px 4px; margin-bottom: 20px;
+    }
+
+    /* ===== VIEWS ===== */
+    .view { display: none; animation: fadeUp 0.4s ease; }
+    .view.active { display: block; }
+    @keyframes fadeUp { 0% { opacity: 0; transform: translateY(12px); } 100% { opacity: 1; transform: translateY(0); } }
+
+    /* ===== STATS & CARDS ===== */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 24px; margin-bottom: 32px; }
+    .stat-card {
+      background: var(--bg-card); border-radius: var(--radius); padding: 22px 24px;
+      box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); transition: var(--transition);
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .stat-card .stat-label { font-size: 13px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+    .stat-card .stat-value { font-size: 32px; font-weight: 700; margin: 6px 0 2px; letter-spacing: -0.5px; }
+    .stat-card .stat-change {
+      font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 10px; border-radius: 20px; background: #e8f5e9; color: var(--kenya-green);
+    }
+    .stat-card .stat-change.danger { background: #fce4e4; color: var(--kenya-red); }
+    .stat-card .stat-icon { float: right; font-size: 28px; opacity: 0.15; color: var(--kenya-green); }
+
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin: 32px 0 18px; flex-wrap: wrap; gap: 12px; }
+    .section-header h3 { font-size: 18px; font-weight: 600; }
+    .section-header h3 i { color: var(--kenya-green); margin-right: 8px; }
+    .section-header .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px;
+      border-radius: 30px; font-weight: 600; font-size: 13px; transition: var(--transition);
+      border: 1px solid transparent;
+    }
+    .btn-primary { background: var(--kenya-green); color: #fff; }
+    .btn-primary:hover { background: #0f4a1f; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,92,42,0.25); }
+    .btn-outline { background: transparent; border-color: var(--border-light); color: var(--text-secondary); }
+    .btn-outline:hover { border-color: var(--kenya-green); color: var(--kenya-green); }
+    .btn-gold { background: var(--kenya-gold); color: #fff; }
+    .btn-gold:hover { background: #b88a12; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(212,160,23,0.3); }
+    .btn-sm { padding: 6px 16px; font-size: 12px; }
+    .btn-danger { background: var(--kenya-red); color: #fff; }
+    .btn-danger:hover { background: #8a0e0e; }
+    .btn-edit { background: #2c3e50; color: #fff; }
+    .btn-edit:hover { background: #1a2a38; }
+    .btn-mpesa { background: #00a859; color: #fff; }
+    .btn-mpesa:hover { background: #008c4a; }
+
+    .units-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .unit-card {
+      background: var(--bg-card); border-radius: var(--radius); padding: 20px;
+      box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);
+      transition: var(--transition); position: relative; overflow: hidden;
+    }
+    .unit-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .unit-card .status-badge {
+      position: absolute; top: 16px; right: 16px; font-size: 11px; font-weight: 600;
+      padding: 4px 14px; border-radius: 30px; text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .unit-card .status-badge.occupied { background: #e8f5e9; color: var(--kenya-green); }
+    .unit-card .status-badge.vacant { background: #fce4e4; color: var(--kenya-red); }
+    .unit-card .status-badge.maintenance { background: #fff3e0; color: #e67e22; }
+    .unit-card .unit-number { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+    .unit-card .unit-number small { font-weight: 400; font-size: 13px; color: var(--text-muted); margin-left: 6px; }
+    .unit-card .unit-details { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--text-secondary); }
+    .unit-card .unit-details i { width: 18px; color: var(--kenya-green); opacity: 0.7; }
+    .unit-card .unit-rent {
+      margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-light);
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+    }
+    .unit-card .unit-rent .rent-amount { font-weight: 700; font-size: 17px; color: var(--kenya-green); }
+    .unit-card .unit-rent .rent-amount span { font-weight: 400; font-size: 13px; color: var(--text-muted); }
+    .unit-card .card-actions {
+      display: flex; gap: 8px; margin-top: 12px; padding-top: 12px;
+      border-top: 1px solid var(--border-light); justify-content: flex-end; flex-wrap: wrap;
+    }
+    .unit-card .due-badge {
+      display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 12px;
+      border-radius: 30px; background: #fce4e4; color: var(--kenya-red); margin-left: 8px;
+    }
+    .unit-card .due-badge.paid { background: #e8f5e9; color: var(--kenya-green); }
+
+    .table-wrap { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-light); overflow: auto; box-shadow: var(--shadow-sm); }
+    .table-wrap table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 500px; }
+    .table-wrap th { text-align: left; padding: 16px 20px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); border-bottom: 1px solid var(--border-light); background: rgba(0,0,0,0.01); }
+    .table-wrap td { padding: 14px 20px; border-bottom: 1px solid var(--border-light); color: var(--text-secondary); vertical-align: middle; }
+    .table-wrap tr:last-child td { border-bottom: none; }
+    .table-wrap .status-pill { display: inline-block; padding: 4px 14px; border-radius: 30px; font-size: 12px; font-weight: 600; }
+    .status-pill.paid { background: #e8f5e9; color: var(--kenya-green); }
+    .status-pill.unpaid { background: #fce4e4; color: var(--kenya-red); }
+    .status-pill.partial { background: #fff3e0; color: #e67e22; }
+    .status-pill.resolved { background: #e8f5e9; color: var(--kenya-green); }
+    .status-pill.open { background: #fce4e4; color: var(--kenya-red); }
+
+    .deposit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-top: 8px; }
+    .deposit-card {
+      background: var(--bg-card); border-radius: var(--radius); padding: 20px;
+      border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); transition: var(--transition);
+    }
+    .deposit-card:hover { box-shadow: var(--shadow-md); }
+    .deposit-card .amount { font-size: 24px; font-weight: 700; color: var(--kenya-red); }
+    .deposit-card .label { font-size: 13px; color: var(--text-muted); }
+    .deposit-card .unit-ref { font-size: 13px; font-weight: 500; margin-top: 6px; }
+
+    .queries-container { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 8px; }
+    @media (max-width: 900px) { .queries-container { grid-template-columns: 1fr; } }
+    .query-list { display: flex; flex-direction: column; gap: 12px; }
+    .query-item {
+      background: var(--bg-card); border-radius: var(--radius-sm); padding: 16px 20px;
+      border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); transition: var(--transition);
+    }
+    .query-item:hover { border-color: var(--kenya-gold); }
+    .query-item .q-top { display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px; flex-wrap: wrap; }
+    .query-item .q-top .q-name { font-weight: 600; font-size: 14px; }
+    .query-item .q-top .q-time { font-size: 12px; color: var(--text-muted); }
+    .query-item .q-text { font-size: 14px; color: var(--text-secondary); margin: 4px 0 10px; }
+    .query-item .q-tag {
+      display: inline-block; font-size: 11px; padding: 2px 12px; border-radius: 20px;
+      background: #e3f0fd; color: #1a5276; font-weight: 500;
+    }
+    .query-item .q-actions { margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end; }
+
+    .query-form {
+      background: var(--bg-card); border-radius: var(--radius); padding: 28px;
+      border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);
+    }
+    .query-form h4 { font-size: 17px; margin-bottom: 16px; }
+    .query-form h4 i { color: var(--kenya-gold); margin-right: 8px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 5px; color: var(--text-secondary); }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 12px 16px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border-light); font-size: 14px; transition: var(--transition);
+      background: #fff; color: var(--text-primary);
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--kenya-green); box-shadow: 0 0 0 3px rgba(26,92,42,0.1);
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 500px) { .form-row { grid-template-columns: 1fr; } }
+
+    .users-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+    .user-card {
+      background: var(--bg-card); border-radius: var(--radius-sm); padding: 18px 20px;
+      border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);
+      display: flex; align-items: center; justify-content: space-between; transition: var(--transition);
+    }
+    .user-card:hover { box-shadow: var(--shadow-md); }
+    .user-card .user-info .u-name { font-weight: 600; font-size: 15px; }
+    .user-card .user-info .u-email { font-size: 13px; color: var(--text-muted); }
+    .user-card .user-info .u-role { font-size: 12px; font-weight: 500; text-transform: capitalize; color: var(--kenya-green); }
+    .user-card .user-actions { display: flex; gap: 6px; }
+
+    .toast {
+      position: fixed; bottom: 30px; right: 30px; background: var(--kenya-black);
+      color: #fff; padding: 16px 28px; border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 12px;
+      transform: translateY(120px); opacity: 0; transition: all 0.5s cubic-bezier(0.4,0,0.2,1);
+      z-index: 2000; border-left: 4px solid var(--kenya-gold);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast i { font-size: 20px; color: var(--kenya-gold); }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .empty-state i { font-size: 48px; opacity: 0.2; margin-bottom: 12px; }
+
+    .sidebar-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4); z-index: 999; display: none;
+    }
+    .sidebar-overlay.active { display: block; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); width: 280px; }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; padding: 0 16px 30px; }
+      .header-left .menu-toggle { display: block; }
+      .header-right .date-badge { display: none; }
+      .stats-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+      .stat-card .stat-value { font-size: 24px; }
+      .units-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 500px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .units-grid { grid-template-columns: 1fr; }
+      .header-right .profile .name, .header-right .profile .role { display: none; }
+      .header-right .profile { padding: 4px; }
+      .login-container { padding: 32px 20px 28px; margin: 16px; }
+    }
+
+    /* ===== M-PESA MODAL ===== */
+    .mpesa-modal .modal-box { max-width: 420px; }
+    .mpesa-modal .modal-box .mpesa-logo { text-align: center; font-size: 48px; color: #00a859; margin-bottom: 8px; }
+    .mpesa-modal .modal-box .mpesa-amount { font-size: 28px; font-weight: 700; text-align: center; color: var(--text-primary); }
+    .mpesa-modal .modal-box .mpesa-till { text-align: center; font-size: 14px; color: var(--text-muted); margin: 4px 0 12px; }
+    .mpesa-modal .modal-box .mpesa-till strong { color: var(--kenya-gold); }
+    .mpesa-modal .modal-box .mpesa-phone { margin-top: 8px; }
+    .mpesa-modal .modal-box .mpesa-phone input { text-align: center; font-size: 18px; letter-spacing: 2px; }
+    .mpesa-modal .modal-box .mpesa-hint { font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 8px; }
+
+    .hidden { display: none !important; }
+    .text-muted { color: var(--text-muted); }
+    .mt-8 { margin-top: 8px; }
+    .mb-8 { margin-bottom: 8px; }
+    .gap-8 { gap: 8px; }
+    .flex { display: flex; }
+    .flex-center { align-items: center; justify-content: center; }
+    .w-full { width: 100%; }
+    .text-center { text-align: center; }
+    .text-green { color: var(--kenya-green); }
+    .text-red { color: var(--kenya-red); }
+    .text-gold { color: var(--kenya-gold); }
+  </style>
+</head>
+<body>
+
+  <!-- ===== LOGIN PAGE ===== -->
+  <div id="loginPage">
+    <div class="login-container">
+      <div class="login-brand">
+        <div class="logo-icon"><i class="fas fa-building"></i></div>
+        <h1>Rental<span>Pro</span></h1>
+        <p>🇰🇪 Kenya · Supabase</p>
+      </div>
+      <form class="login-form" id="loginForm">
+        <div class="form-group">
+          <label><i class="fas fa-envelope"></i> Email</label>
+          <input type="email" id="loginEmail" placeholder="Enter your email" />
+        </div>
+        <div class="form-group">
+          <label><i class="fas fa-lock"></i> Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter your password" />
+        </div>
+        <button type="submit" class="login-btn"><i class="fas fa-arrow-right-to-bracket"></i> Sign In</button>
+        <div class="login-error" id="loginError"></div>
+      </form>
+      <div class="login-footer-actions">
+        <span class="register-link" id="openRegisterBtn"><i class="fas fa-user-plus"></i> Create Account</span>
+        <span class="demo-hint" id="demoLogin">💡 Register first, then login</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REGISTER MODAL ===== -->
+  <div class="modal-overlay" id="registerModal">
+    <div class="modal-box">
+      <button class="modal-close" id="closeRegisterBtn">&times;</button>
+      <h2><i class="fas fa-user-plus" style="color:var(--kenya-green);"></i> Register</h2>
+      <p class="modal-sub">Owners must provide a M‑Pesa Paybill/Till number.</p>
+      <form id="registerForm">
+        <div class="form-group"><label>Full Name</label><input type="text" id="regName" placeholder="e.g. Jane Muthoni" required /></div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="regEmail" placeholder="e.g. jane@domain.com" required /></div>
+        <div class="form-group"><label>Password</label><input type="password" id="regPassword" placeholder="Min 6 characters" required minlength="6" /></div>
+        <div class="form-group"><label>I am a...</label>
+          <select id="regRole">
+            <option value="owner">🏢 Owner / Company</option>
+            <option value="caretaker">🔧 Caretaker</option>
+            <option value="tenant">👤 Tenant</option>
+          </select>
+        </div>
+        <div class="form-group" id="regTillGroup">
+          <label>M‑Pesa Paybill / Till Number</label>
+          <input type="text" id="regTill" placeholder="e.g. 123456" />
+          <small style="color:var(--text-muted); font-size:12px;">This number will be used for tenant rent payments to your company.</small>
+        </div>
+        <div class="form-group" id="regCompanyGroup">
+          <label>Company Name</label>
+          <input type="text" id="regCompanyName" placeholder="e.g. Muthoni Properties Ltd" />
+        </div>
+        <div class="form-group hidden" id="regCodeGroup">
+          <label>Company Code</label>
+          <input type="text" id="regCompanyCode" placeholder="Enter the code provided by your owner" />
+        </div>
+        <button type="submit" class="btn btn-primary w-full"><i class="fas fa-paper-plane"></i> Register</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== MAIN APP ===== -->
+  <div id="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-top">
+          <div class="logo-icon"><i class="fas fa-building"></i></div>
+          <div>
+            <h1>Rental<span>Pro</span></h1>
+            <div class="company-name" id="sidebarCompanyName">—</div>
+            <div class="company-till" id="sidebarTill">Till: —</div>
+          </div>
+        </div>
+        <div class="company-code" id="companyCodeDisplay" style="display:none;">
+          <span id="companyCodeText">—</span>
+          <button class="copy-btn" id="copyCodeBtn" title="Copy code"><i class="fas fa-copy"></i></button>
+        </div>
+      </div>
+      <nav class="sidebar-nav" id="sidebarNav"></nav>
+      <div class="sidebar-footer">
+        <div class="flag">🇰🇪</div>
+        <div style="margin-top:4px; font-size:11px;" id="sidebarUser">—</div>
+        <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+          <h2><span>Rental</span><span id="pageTitle">Dashboard</span></h2>
+        </div>
+        <div class="header-right">
+          <span class="date-badge" id="dateBadge">Loading…</span>
+          <div class="profile">
+            <div class="avatar" id="userAvatar">JM</div>
+            <div>
+              <div class="name" id="userName">James Mwangi</div>
+              <div class="role" id="userRole">owner</div>
+            </div>
+          </div>
+        </div>
+      </header>
+      <div class="kenyan-flag-strip"></div>
+
+      <!-- VIEW: DASHBOARD -->
+      <section class="view active" id="view-dashboard">
+        <div style="margin-top:4px;">
+          <h2 style="font-size:22px; font-weight:600;" id="dashboardGreeting">Habari 👋</h2>
+          <p class="greeting" id="dashboardSub">Welcome back.</p>
+        </div>
+        <div class="stats-grid" id="statsGrid"></div>
+        <div class="section-header">
+          <h3><i class="fas fa-hotel"></i> <span id="unitsSectionTitle">Units</span></h3>
+          <div class="actions" id="unitsActions"></div>
+        </div>
+        <div class="units-grid" id="dashboardUnits"></div>
+      </section>
+
+      <!-- VIEW: UNITS -->
+      <section class="view" id="view-units">
+        <div class="section-header" style="margin-top:4px;">
+          <h3><i class="fas fa-hotel"></i> All Units</h3>
+          <div class="actions" id="unitsListActions"></div>
+        </div>
+        <div class="units-grid" id="allUnits"></div>
+      </section>
+
+      <!-- VIEW: PAYMENTS -->
+      <section class="view" id="view-payments">
+        <div class="section-header" style="margin-top:4px;">
+          <h3><i class="fas fa-coin"></i> <span id="paymentsTitle">Payments</span></h3>
+          <div class="actions" id="paymentsActions"></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Unit</th><th>Tenant</th><th>Amount</th><th>Due Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="paymentsTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW: DEPOSITS -->
+      <section class="view" id="view-deposits">
+        <div class="section-header" style="margin-top:4px;">
+          <h3><i class="fas fa-shield-alt"></i> Deposits &amp; Damages</h3>
+          <div class="actions" id="depositsActions"></div>
+        </div>
+        <div id="depositsSummary"></div>
+        <h4 style="font-size:16px; font-weight:600; margin:18px 0 14px;"><i class="fas fa-tools" style="color:var(--kenya-red);"></i> Reported Damages</h4>
+        <div class="deposit-grid" id="damagesGrid"></div>
+      </section>
+
+      <!-- VIEW: QUERIES -->
+      <section class="view" id="view-queries">
+        <div class="section-header" style="margin-top:4px;">
+          <h3><i class="fas fa-headset"></i> <span id="queriesTitle">Queries</span></h3>
+          <span style="font-size:13px; color:var(--text-muted);" id="queriesCount">0</span>
+        </div>
+        <div class="queries-container">
+          <div>
+            <h4 style="font-size:15px; font-weight:600; margin-bottom:12px;"><i class="fas fa-inbox"></i> <span id="queriesListTitle">Recent</span></h4>
+            <div class="query-list" id="queryList"></div>
+          </div>
+          <div class="query-form" id="queryFormContainer">
+            <h4><i class="fas fa-pen"></i> <span id="queryFormTitle">Submit Query</span></h4>
+            <form id="queryForm">
+              <div class="form-row" id="queryFormFields">
+                <div class="form-group"><label>Full Name</label><input type="text" id="qName" placeholder="Full name" required /></div>
+                <div class="form-group"><label>Unit Number</label><input type="text" id="qUnit" placeholder="e.g. A-101" required /></div>
+              </div>
+              <div class="form-group"><label>Subject</label>
+                <select id="qSubject"><option value="Maintenance">Maintenance</option><option value="Rent">Rent</option><option value="Deposit">Deposit</option><option value="General">General</option></select>
+              </div>
+              <div class="form-group"><label>Message</label><textarea id="qMessage" placeholder="Describe your issue…" required></textarea></div>
+              <button type="submit" class="btn btn-primary w-full"><i class="fas fa-paper-plane"></i> Send</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: USERS (Owner only) -->
+      <section class="view" id="view-users">
+        <div class="section-header" style="margin-top:4px;">
+          <h3><i class="fas fa-users"></i> Team Members</h3>
+          <div class="actions" id="usersActions"></div>
+        </div>
+        <div class="users-grid" id="usersGrid"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toastMessage">Done.</span></div>
+
+  <!-- ===== CRUD MODAL ===== -->
+  <div class="modal-overlay" id="crudModal">
+    <div class="modal-box">
+      <button class="modal-close" id="closeCrudBtn">&times;</button>
+      <h2 id="crudModalTitle">Add New</h2>
+      <form id="crudForm">
+        <div id="crudFormFields"></div>
+        <button type="submit" class="btn btn-primary w-full" id="crudSubmitBtn"><i class="fas fa-save"></i> Save</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== M-PESA MODAL ===== -->
+  <div class="modal-overlay mpesa-modal" id="mpesaModal">
+    <div class="modal-box">
+      <button class="modal-close" id="closeMpesaBtn">&times;</button>
+      <div class="mpesa-logo"><i class="fas fa-mobile-alt"></i> M‑PESA</div>
+      <div class="mpesa-amount" id="mpesaAmount">KSh 0</div>
+      <div class="mpesa-till">Pay to: <strong id="mpesaTillDisplay">—</strong></div>
+      <div class="mpesa-phone form-group">
+        <label>Phone Number (254...)</label>
+        <input type="tel" id="mpesaPhone" placeholder="254712345678" value="254712345678" />
+      </div>
+      <div class="mpesa-hint">You will receive a prompt on your phone to confirm payment.</div>
+      <button class="btn btn-mpesa w-full" id="mpesaPayBtn" style="margin-top:16px;"><i class="fas fa-check-circle"></i> Pay Now</button>
+      <div id="mpesaStatus" class="text-center mt-8 text-muted" style="font-size:13px;"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ===== JAVASCRIPT ===== -->
+  <!-- ============================================================ -->
+  <script>
+    (function() {
+      'use strict';
+
+      // ================================================================
+      // SUPABASE CONFIG
+      // ================================================================
+      const SUPABASE_URL = 'https://kmfxnetauisbbhijjseo.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImttZnhuZXRhdWlzYmJoaWpqc2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTQwMTEsImV4cCI6MjEwMjAzMDAxMX0.fOTDjVDgB80FZXgS7Cyfp2capOdL5282CePS9SQoeVI';
+
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // ================================================================
+      // STATE
+      // ================================================================
+      let currentUser = null;
+      let currentCompany = null;
+      let currentView = 'dashboard';
+      let mpesaContext = null;
+
+      // ================================================================
+      // DOM REFS
+      // ================================================================
+      const $ = (s) => document.querySelector(s);
+      const $$ = (s) => document.querySelectorAll(s);
+
+      const loginPage = $('#loginPage');
+      const loginForm = $('#loginForm');
+      const loginEmail = $('#loginEmail');
+      const loginPassword = $('#loginPassword');
+      const loginError = $('#loginError');
+      const registerModal = $('#registerModal');
+      const registerForm = $('#registerForm');
+      const closeRegisterBtn = $('#closeRegisterBtn');
+      const openRegisterBtn = $('#openRegisterBtn');
+      const regRole = $('#regRole');
+      const regCompanyGroup = $('#regCompanyGroup');
+      const regCodeGroup = $('#regCodeGroup');
+      const regTillGroup = $('#regTillGroup');
+      const regTill = $('#regTill');
+
+      const app = $('#app');
+      const sidebar = $('#sidebar');
+      const sidebarNav = $('#sidebarNav');
+      const sidebarOverlay = $('#sidebarOverlay');
+      const menuToggle = $('#menuToggle');
+      const logoutBtn = $('#logoutBtn');
+      const sidebarCompanyName = $('#sidebarCompanyName');
+      const sidebarTill = $('#sidebarTill');
+      const companyCodeDisplay = $('#companyCodeDisplay');
+      const companyCodeText = $('#companyCodeText');
+      const copyCodeBtn = $('#copyCodeBtn');
+      const sidebarUser = $('#sidebarUser');
+      const userAvatar = $('#userAvatar');
+      const userName = $('#userName');
+      const userRole = $('#userRole');
+      const pageTitle = $('#pageTitle');
+      const dateBadge = $('#dateBadge');
+
+      const views = {
+        dashboard: $('#view-dashboard'),
+        units: $('#view-units'),
+        payments: $('#view-payments'),
+        deposits: $('#view-deposits'),
+        queries: $('#view-queries'),
+        users: $('#view-users')
+      };
+
+      const mpesaModal = $('#mpesaModal');
+      const mpesaAmount = $('#mpesaAmount');
+      const mpesaTillDisplay = $('#mpesaTillDisplay');
+      const mpesaPhone = $('#mpesaPhone');
+      const mpesaPayBtn = $('#mpesaPayBtn');
+      const mpesaStatus = $('#mpesaStatus');
+      const closeMpesaBtn = $('#closeMpesaBtn');
+
+      // ================================================================
+      // TOAST
+      // ================================================================
+      function showToast(msg, icon = 'fa-check-circle') {
+        const t = $('#toast');
+        $('#toastMessage').textContent = msg;
+        t.querySelector('i').className = 'fas ' + icon;
+        t.classList.add('show');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.classList.remove('show'), 3500);
+      }
+
+      // ================================================================
+      // HELPERS
+      // ================================================================
+      function formatCurrency(amount) { return 'KSh ' + Number(amount).toLocaleString(); }
+
+      function getStatusPill(status) {
+        const map = { paid: 'paid', unpaid: 'unpaid', partial: 'partial', resolved: 'resolved', open: 'open' };
+        return `<span class="status-pill ${map[status] || 'unpaid'}">${status.charAt(0).toUpperCase()+status.slice(1)}</span>`;
+      }
+
+      function getStatusBadge(status) {
+        const map = { occupied: 'occupied', vacant: 'vacant', maintenance: 'maintenance' };
+        return `<span class="status-badge ${map[status] || 'vacant'}">${status.charAt(0).toUpperCase()+status.slice(1)}</span>`;
+      }
+
+      function getInitials(name) { return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2); }
+
+      function formatDate(iso) {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        return d.toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' });
+      }
+
+      function timeAgo(iso) {
+        if (!iso) return '—';
+        const diff = Date.now() - new Date(iso).getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) return 'Just now';
+        if (mins < 60) return mins + 'm ago';
+        const hrs = Math.floor(mins / 60);
+        if (hrs < 24) return hrs + 'h ago';
+        const days = Math.floor(hrs / 24);
+        return days + 'd ago';
+      }
+
+      function getToday() { return new Date().toISOString().slice(0, 10); }
+
+      function getCurrentMonthDue(unit) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const dueDay = unit.rent_due_day || 5;
+        const dueDate = new Date(year, month, dueDay);
+        return dueDate.toISOString().slice(0, 10);
+      }
+
+      function isRentDueWithPayments(unit, payments) {
+        if (!unit.tenant_id) return false;
+        const today = new Date();
+        const dueDate = new Date(getCurrentMonthDue(unit));
+        const thisMonth = today.getMonth();
+        const thisYear = today.getFullYear();
+        const paidThisMonth = payments.some(p => {
+          if (p.unit_id !== unit.id) return false;
+          if (p.status !== 'paid') return false;
+          const d = new Date(p.paid_date);
+          return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+        });
+        if (paidThisMonth) return false;
+        return today > dueDate;
+      }
+
+      function getRentStatusWithPayments(unit, payments) {
+        if (!unit.tenant_id) return { status: 'vacant', label: 'Vacant' };
+        const due = isRentDueWithPayments(unit, payments);
+        if (due) return { status: 'overdue', label: 'Overdue', badge: 'due-badge' };
+        else return { status: 'paid', label: 'Paid', badge: 'due-badge paid' };
+      }
+
+      // ================================================================
+      // AUTH FUNCTIONS
+      // ================================================================
+      async function login(email, password) {
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) {
+            loginError.textContent = '❌ ' + error.message + '. Please register first if you don\'t have an account.';
+            return false;
+          }
+
+          const { data: userProfile, error: profileError } = await supabase
+            .from('users')
+            .select('*, companies(*)')
+            .eq('id', data.user.id)
+            .single();
+
+          if (profileError || !userProfile) {
+            loginError.textContent = '❌ User profile not found. Please register.';
+            await supabase.auth.signOut();
+            return false;
+          }
+
+          currentUser = userProfile;
+          currentCompany = userProfile.companies;
+
+          loginPage.classList.add('hidden');
+          app.classList.add('visible');
+          loginError.textContent = '';
+          await renderAll();
+          subscribeToChanges();
+          showToast(`🇰🇪 Karibu, ${currentUser.name}! (${currentCompany.name})`, 'fa-building');
+          return true;
+        } catch (err) {
+          loginError.textContent = '❌ ' + err.message;
+          return false;
+        }
+      }
+
+      async function logout() {
+        await supabase.auth.signOut();
+        currentUser = null;
+        currentCompany = null;
+        app.classList.remove('visible');
+        loginPage.classList.remove('hidden');
+        showToast('👋 Logged out.', 'fa-sign-out-alt');
+      }
+
+      async function register(data) {
+        try {
+          const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: data.email,
+            password: data.password,
+          });
+          if (authError) {
+            showToast('❌ ' + authError.message, 'fa-exclamation-circle');
+            return false;
+          }
+
+          const userId = authData.user.id;
+
+          if (data.role === 'owner') {
+            if (!data.till) {
+              showToast('❌ Please enter a M‑Pesa Paybill/Till number.', 'fa-exclamation-circle');
+              return false;
+            }
+            const code = data.companyName.replace(/\s/g, '').toUpperCase().slice(0, 8) + Math.floor(Math.random() * 900 + 100);
+            const { data: company, error: companyError } = await supabase
+              .from('companies')
+              .insert({
+                name: data.companyName,
+                owner_name: data.name,
+                email: data.email,
+                password: data.password,
+                code: code,
+                till: data.till
+              })
+              .select()
+              .single();
+            if (companyError) {
+              showToast('❌ ' + companyError.message, 'fa-exclamation-circle');
+              return false;
+            }
+
+            const { error: userError } = await supabase
+              .from('users')
+              .insert({
+                id: userId,
+                company_id: company.id,
+                name: data.name,
+                email: data.email,
+                role: 'owner',
+                phone: data.phone || ''
+              });
+            if (userError) {
+              showToast('❌ ' + userError.message, 'fa-exclamation-circle');
+              return false;
+            }
+            showToast(`✅ Company "${company.name}" created! Code: ${company.code}`, 'fa-check');
+            return true;
+          } else {
+            const { data: company, error: companyError } = await supabase
+              .from('companies')
+              .select('*')
+              .eq('code', data.companyCode)
+              .single();
+            if (companyError || !company) {
+              showToast('❌ Invalid company code.', 'fa-exclamation-circle');
+              return false;
+            }
+            const { error: userError } = await supabase
+              .from('users')
+              .insert({
+                id: userId,
+                company_id: company.id,
+                name: data.name,
+                email: data.email,
+                role: data.role,
+                phone: data.phone || ''
+              });
+            if (userError) {
+              showToast('❌ ' + userError.message, 'fa-exclamation-circle');
+              return false;
+            }
+            showToast(`✅ Registered as ${data.role} in ${company.name}!`, 'fa-check');
+            return true;
+          }
+        } catch (err) {
+          showToast('❌ ' + err.message, 'fa-exclamation-circle');
+          return false;
+        }
+      }
+
+      // ================================================================
+      // DATA FETCHING
+      // ================================================================
+      async function getCompanyData() {
+        if (!currentCompany) return { units: [], payments: [], users: [], queries: [] };
+        const companyId = currentCompany.id;
+
+        const [unitsRes, paymentsRes, usersRes, queriesRes] = await Promise.all([
+          supabase.from('units').select('*').eq('company_id', companyId),
+          supabase.from('payments').select('*').eq('company_id', companyId),
+          supabase.from('users').select('*').eq('company_id', companyId),
+          supabase.from('queries').select('*').eq('company_id', companyId)
+        ]);
+
+        return {
+          units: unitsRes.data || [],
+          payments: paymentsRes.data || [],
+          users: usersRes.data || [],
+          queries: queriesRes.data || []
+        };
+      }
+
+      // ================================================================
+      // CRUD OPERATIONS
+      // ================================================================
+      async function addUnit(data) {
+        const { error } = await supabase
+          .from('units')
+          .insert({
+            company_id: currentCompany.id,
+            number: data.number,
+            location: data.location,
+            tenant_id: data.tenantId || null,
+            rent: data.rent,
+            status: data.status,
+            deposit: data.deposit || null,
+            damage: data.damage || null,
+            rent_due_day: data.rentDueDay || 5
+          });
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('✅ Unit added.', 'fa-plus-circle');
+        renderAll();
+      }
+
+      async function updateUnit(id, data) {
+        const { error } = await supabase
+          .from('units')
+          .update({
+            number: data.number,
+            location: data.location,
+            tenant_id: data.tenantId || null,
+            rent: data.rent,
+            status: data.status,
+            deposit: data.deposit || null,
+            damage: data.damage || null,
+            rent_due_day: data.rentDueDay || 5
+          })
+          .eq('id', id);
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('✅ Unit updated.', 'fa-edit');
+        renderAll();
+      }
+
+      async function deleteUnit(id) {
+        if (!confirm('Delete this unit and all related records?')) return;
+        await supabase.from('payments').delete().eq('unit_id', id);
+        await supabase.from('queries').delete().eq('unit_id', id);
+        const { error } = await supabase.from('units').delete().eq('id', id);
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('🗑️ Unit deleted.', 'fa-trash');
+        renderAll();
+      }
+
+      async function addPayment(data) {
+        const { error } = await supabase
+          .from('payments')
+          .insert({
+            company_id: currentCompany.id,
+            unit_id: data.unitId,
+            tenant_id: data.tenantId,
+            amount: data.amount,
+            due: data.due,
+            status: data.status,
+            paid_date: data.status === 'paid' ? getToday() : null
+          });
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('✅ Payment recorded.', 'fa-plus-circle');
+        renderAll();
+      }
+
+      async function updatePayment(id, data) {
+        const { error } = await supabase
+          .from('payments')
+          .update({
+            unit_id: data.unitId,
+            tenant_id: data.tenantId,
+            amount: data.amount,
+            due: data.due,
+            status: data.status,
+            paid_date: data.status === 'paid' ? getToday() : null
+          })
+          .eq('id', id);
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('✅ Payment updated.', 'fa-edit');
+        renderAll();
+      }
+
+      async function deletePayment(id) {
+        if (!confirm('Delete this payment record?')) return;
+        const { error } = await supabase.from('payments').delete().eq('id', id);
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('🗑️ Payment deleted.', 'fa-trash');
+        renderAll();
+      }
+
+      async function addUser(data) {
+        const { error } = await supabase
+          .from('users')
+          .insert({
+            company_id: currentCompany.id,
+            name: data.name,
+            email: data.email,
+            password: data.password,
+            role: data.role,
+            phone: data.phone || '',
+            unit_id: data.unitId || null
+          });
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast(`✅ ${data.role} ${data.name} added.`, 'fa-user-plus');
+        renderAll();
+      }
+
+      async function updateUser(id, data) {
+        const { error } = await supabase
+          .from('users')
+          .update({
+            name: data.name,
+            email: data.email,
+            role: data.role,
+            phone: data.phone || '',
+            unit_id: data.unitId || null
+          })
+          .eq('id', id);
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('✅ User updated.', 'fa-edit');
+        renderAll();
+      }
+
+      async function deleteUser(id) {
+        if (!confirm('Delete this user?')) return;
+        const { error } = await supabase.from('users').delete().eq('id', id);
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('🗑️ User deleted.', 'fa-trash');
+        renderAll();
+      }
+
+      async function resolveQuery(id) {
+        const { error } = await supabase
+          .from('queries')
+          .update({ status: 'resolved' })
+          .eq('id', id);
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('✅ Query resolved.', 'fa-check');
+        renderAll();
+      }
+
+      async function deleteQuery(id) {
+        if (!confirm('Delete this query?')) return;
+        const { error } = await supabase.from('queries').delete().eq('id', id);
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('🗑️ Query deleted.', 'fa-trash');
+        renderAll();
+      }
+
+      // ================================================================
+      // M-PESA PAYMENT
+      // ================================================================
+      function openMpesa(unitId, tenantId, amount) {
+        if (!currentCompany.till) {
+          showToast('❌ Owner has not set a M‑Pesa Paybill/Till number.', 'fa-exclamation-circle');
+          return;
+        }
+        mpesaContext = { unitId, tenantId, amount };
+        mpesaAmount.textContent = formatCurrency(amount);
+        mpesaTillDisplay.textContent = `${currentCompany.name} · Till ${currentCompany.till}`;
+        getCompanyData().then(({ users }) => {
+          const tenant = users.find(u => u.id === tenantId);
+          if (tenant && tenant.phone) {
+            mpesaPhone.value = tenant.phone;
+          } else {
+            mpesaPhone.value = '254712345678';
+          }
+        });
+        mpesaStatus.textContent = '';
+        mpesaModal.classList.add('active');
+      }
+
+      function closeMpesa() {
+        mpesaModal.classList.remove('active');
+        mpesaContext = null;
+        mpesaPayBtn.disabled = false;
+      }
+
+      async function processMpesaPayment() {
+        if (!mpesaContext) return;
+        const { unitId, tenantId, amount } = mpesaContext;
+        const phone = mpesaPhone.value.trim();
+        if (!phone || phone.length < 10) {
+          mpesaStatus.textContent = '❌ Please enter a valid phone number (254...)';
+          return;
+        }
+
+        const till = currentCompany.till || 'Not set';
+        mpesaStatus.textContent = `⏳ Initiating M‑PESA request to Till ${till}...`;
+        mpesaPayBtn.disabled = true;
+
+        setTimeout(async () => {
+          const success = Math.random() > 0.1;
+          if (success) {
+            mpesaStatus.innerHTML = `✅ Payment of ${formatCurrency(amount)} to ${till} successful! Recording...`;
+            const { error } = await supabase
+              .from('payments')
+              .insert({
+                company_id: currentCompany.id,
+                unit_id: unitId,
+                tenant_id: tenantId,
+                amount: amount,
+                due: getToday(),
+                status: 'paid',
+                paid_date: getToday()
+              });
+            if (error) {
+              mpesaStatus.textContent = '❌ ' + error.message;
+              mpesaPayBtn.disabled = false;
+              return;
+            }
+            showToast(`✅ Rent paid to ${currentCompany.name} (Till ${till})`, 'fa-check-circle');
+            closeMpesa();
+            renderAll();
+          } else {
+            mpesaStatus.innerHTML = '❌ Payment failed. Please try again.';
+            mpesaPayBtn.disabled = false;
+          }
+        }, 2000);
+      }
+
+      // ================================================================
+      // RENDER FUNCTIONS
+      // ================================================================
+      async function renderSidebar() {
+        if (!currentUser) return;
+        const role = currentUser.role;
+        const isOwner = role === 'owner';
+        const isCaretaker = role === 'caretaker';
+        const isTenant = role === 'tenant';
+        const { units, payments, queries } = await getCompanyData();
+
+        sidebarCompanyName.textContent = currentCompany.name;
+        sidebarTill.textContent = currentCompany.till ? `Till: ${currentCompany.till}` : 'Till: Not set';
+
+        if (isOwner && currentCompany.code) {
+          companyCodeDisplay.style.display = 'flex';
+          companyCodeText.textContent = currentCompany.code;
+        } else {
+          companyCodeDisplay.style.display = 'none';
+        }
+
+        let items = [];
+        items.push({ id: 'dashboard', label: 'Dashboard', icon: 'fa-chart-pie', badge: null });
+
+        if (isOwner || isCaretaker) {
+          const overdueCount = units.filter(u => u.tenant_id && isRentDueWithPayments(u, payments)).length;
+          items.push({ id: 'units', label: 'Units', icon: 'fa-hotel', badge: units.length });
+          items.push({ id: 'payments', label: 'Payments', icon: 'fa-coin', badge: payments.filter(p => p.status !== 'paid').length });
+          items.push({ id: 'deposits', label: 'Deposits', icon: 'fa-shield-alt', badge: null });
+          items.push({ id: 'queries', label: 'Queries', icon: 'fa-headset', badge: queries.filter(q => q.status === 'open').length });
+          if (isOwner) items.push({ id: 'users', label: 'Team', icon: 'fa-users', badge: null });
+          const overdueItem = items.find(it => it.id === 'units');
+          if (overdueItem && overdueCount > 0) {
+            overdueItem.badge = `${units.length} (${overdueCount} overdue)`;
+          }
+        } else if (isTenant) {
+          const myUnit = units.find(u => u.tenant_id === currentUser.id);
+          const myOverdue = myUnit && isRentDueWithPayments(myUnit, payments) ? 1 : 0;
+          items.push({ id: 'payments', label: 'My Payments', icon: 'fa-coin', badge: null });
+          items.push({ id: 'queries', label: 'My Queries', icon: 'fa-headset', badge: queries.filter(q => q.tenant_id === currentUser.id && q.status === 'open').length });
+          if (myOverdue) {
+            const payItem = items.find(it => it.id === 'payments');
+            if (payItem) payItem.badge = '⚠️ Due';
+          }
+        }
+
+        sidebarNav.innerHTML = `
+          <div class="nav-label">Main</div>
+          ${items.map(it => `
+            <a class="nav-item ${currentView === it.id ? 'active' : ''}" data-view="${it.id}">
+              <i class="fas ${it.icon}"></i> ${it.label}
+              ${it.badge ? `<span class="badge">${it.badge}</span>` : ''}
+            </a>
+          `).join('')}
+        `;
+        sidebarNav.querySelectorAll('.nav-item').forEach(el => {
+          el.addEventListener('click', () => navigateTo(el.dataset.view));
+        });
+
+        sidebarUser.textContent = currentUser.name;
+        userAvatar.textContent = getInitials(currentUser.name);
+        userName.textContent = currentUser.name;
+        userRole.textContent = currentUser.role;
+      }
+
+      async function renderDashboard() {
+        if (!currentUser) return;
+        const isOwner = currentUser.role === 'owner';
+        const isCaretaker = currentUser.role === 'caretaker';
+        const isTenant = currentUser.role === 'tenant';
+        const { units, payments, users } = await getCompanyData();
+
+        const occupied = units.filter(u => u.status === 'occupied').length;
+        const vacant = units.filter(u => u.status === 'vacant').length;
+        const totalRent = units.filter(u => u.status === 'occupied').reduce((s, u) => s + u.rent, 0);
+        const collected = payments.filter(p => p.status === 'paid').reduce((s, p) => s + p.amount, 0);
+        const overdueCount = units.filter(u => u.tenant_id && isRentDueWithPayments(u, payments)).length;
+
+        $('#dashboardGreeting').textContent = `Habari, ${currentUser.name} 👋`;
+        $('#dashboardSub').textContent = isOwner ? `Full overview. ${overdueCount} unit(s) have overdue rent.` :
+          isCaretaker ? `Manage operations. ${overdueCount} overdue rent(s).` :
+          `Welcome back! Check your rent status below.`;
+
+        if (isOwner || isCaretaker) {
+          $('#statsGrid').innerHTML = `
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-door-open"></i></div><div class="stat-label">Total Units</div><div class="stat-value">${units.length}</div><span class="stat-change"><i class="fas fa-arrow-up"></i> ${units.length > 0 ? Math.round(occupied/units.length*100) : 0}% occ.</span></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-user-check"></i></div><div class="stat-label">Occupied</div><div class="stat-value">${occupied}</div><span class="stat-change"><i class="fas fa-check"></i> ${occupied} units</span></div>
+            <div class="stat-card ${overdueCount > 0 ? 'stat-card-danger' : ''}"><div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-label">Overdue Rent</div><div class="stat-value" style="color:${overdueCount > 0 ? 'var(--kenya-red)' : 'var(--kenya-green)'};">${overdueCount}</div><span class="stat-change ${overdueCount > 0 ? 'danger' : ''}">${overdueCount > 0 ? '⚠️ Action needed' : '✅ All paid'}</span></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-coins"></i></div><div class="stat-label">Rent Collected</div><div class="stat-value">${formatCurrency(collected)}</div><span class="stat-change"><i class="fas fa-arrow-up"></i> ${totalRent > 0 ? Math.round(collected/totalRent*100) : 0}%</span></div>
+          `;
+        } else {
+          const myUnit = units.find(u => u.tenant_id === currentUser.id);
+          const myPayments = payments.filter(p => p.tenant_id === currentUser.id);
+          const paid = myPayments.filter(p => p.status === 'paid').length;
+          const due = myUnit && isRentDueWithPayments(myUnit, payments);
+          $('#statsGrid').innerHTML = `
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-home"></i></div><div class="stat-label">My Unit</div><div class="stat-value">${myUnit ? myUnit.number : '—'}</div><span class="stat-change">${myUnit ? myUnit.location.split(',')[0] : ''}</span></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-coins"></i></div><div class="stat-label">Monthly Rent</div><div class="stat-value">${myUnit ? formatCurrency(myUnit.rent) : '—'}</div><span class="stat-change">${myUnit ? myUnit.status : ''}</span></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-credit-card"></i></div><div class="stat-label">Payments Made</div><div class="stat-value">${paid}/${myPayments.length}</div><span class="stat-change">${myPayments.length > 0 ? Math.round(paid/myPayments.length*100) : 0}%</span></div>
+            <div class="stat-card" style="${due ? 'border-color:var(--kenya-red);' : ''}"><div class="stat-icon"><i class="fas fa-exclamation-circle"></i></div><div class="stat-label">Rent Status</div><div class="stat-value" style="font-size:20px;color:${due ? 'var(--kenya-red)' : 'var(--kenya-green)'};">${due ? '⚠️ Due' : '✅ Paid'}</div><span class="stat-change ${due ? 'danger' : ''}">${due ? 'Please pay' : 'All good'}</span></div>
+          `;
+        }
+
+        $('#unitsSectionTitle').textContent = isTenant ? 'My Unit' : 'Recent Units';
+        $('#unitsActions').innerHTML = (isOwner || isCaretaker) ?
+          `<button class="btn btn-outline btn-sm" data-view="units"><i class="fas fa-arrow-right"></i> View All</button>` :
+          '';
+        $('#unitsActions').querySelector('[data-view="units"]')?.addEventListener('click', () => navigateTo('units'));
+
+        const displayUnits = isTenant ? units.filter(u => u.tenant_id === currentUser.id) : units.slice(0, 6);
+        $('#dashboardUnits').innerHTML = displayUnits.map(u => {
+          const tenant = users.find(usr => usr.id === u.tenant_id);
+          const rentStatus = getRentStatusWithPayments(u, payments);
+          const dueBadge = u.tenant_id ? `<span class="due-badge ${rentStatus.badge}">${rentStatus.label}</span>` : '';
+          return `
+            <div class="unit-card">
+              ${getStatusBadge(u.status)}
+              <div class="unit-number">${u.number} <small>${u.location.split(',')[0]}</small> ${dueBadge}</div>
+              <div class="unit-details">
+                <div><i class="fas fa-user"></i> ${tenant ? tenant.name : '—'}</div>
+                <div><i class="fas fa-map-pin"></i> ${u.location}</div>
+                ${u.damage ? `<div><i class="fas fa-exclamation-triangle" style="color:var(--kenya-red);"></i> ${u.damage}</div>` : ''}
+              </div>
+              <div class="unit-rent"><span class="rent-amount">${formatCurrency(u.rent)} <span>/ month</span></span></div>
+              ${isTenant && u.tenant_id === currentUser.id ? `
+                <div class="card-actions">
+                  <button class="btn btn-mpesa btn-sm" onclick="openMpesa('${u.id}','${u.tenant_id}',${u.rent})"><i class="fas fa-mobile-alt"></i> Pay Rent</button>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('') || `<div class="empty-state"><i class="fas fa-hotel"></i><p>No units available.</p></div>`;
+      }
+
+      async function renderUnits() {
+        const { units, users, payments } = await getCompanyData();
+        const isOwner = currentUser.role === 'owner';
+        const isCaretaker = currentUser.role === 'caretaker';
+        const isTenant = currentUser.role === 'tenant';
+
+        $('#unitsListActions').innerHTML = (isOwner || isCaretaker) ?
+          `<button class="btn btn-primary btn-sm" onclick="openCrud('unit','add')"><i class="fas fa-plus"></i> Add Unit</button>` :
+          '';
+
+        const displayUnits = isTenant ? units.filter(u => u.tenant_id === currentUser.id) : units;
+        $('#allUnits').innerHTML = displayUnits.map(u => {
+          const tenant = users.find(usr => usr.id === u.tenant_id);
+          const rentStatus = getRentStatusWithPayments(u, payments);
+          const dueBadge = u.tenant_id ? `<span class="due-badge ${rentStatus.badge}">${rentStatus.label}</span>` : '';
+          return `
+            <div class="unit-card">
+              ${getStatusBadge(u.status)}
+              <div class="unit-number">${u.number} <small>${u.location.split(',')[0]}</small> ${dueBadge}</div>
+              <div class="unit-details">
+                <div><i class="fas fa-user"></i> ${tenant ? tenant.name : '—'}</div>
+                <div><i class="fas fa-map-pin"></i> ${u.location}</div>
+                ${u.damage ? `<div><i class="fas fa-exclamation-triangle" style="color:var(--kenya-red);"></i> ${u.damage}</div>` : ''}
+              </div>
+              <div class="unit-rent"><span class="rent-amount">${formatCurrency(u.rent)} <span>/ month</span></span>
+                ${u.deposit ? `<span style="font-size:12px; color:var(--text-muted);">Deposit: ${formatCurrency(u.deposit)}</span>` : ''}
+              </div>
+              <div class="card-actions">
+                ${isTenant && u.tenant_id === currentUser.id ? `
+                  <button class="btn btn-mpesa btn-sm" onclick="openMpesa('${u.id}','${u.tenant_id}',${u.rent})"><i class="fas fa-mobile-alt"></i> Pay Rent</button>
+                ` : ''}
+                ${(isOwner || isCaretaker) ? `
+                  <button class="btn btn-edit btn-sm" onclick="openCrud('unit','edit','${u.id}')"><i class="fas fa-edit"></i></button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteUnit('${u.id}')"><i class="fas fa-trash"></i></button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join('') || `<div class="empty-state"><i class="fas fa-hotel"></i><p>No units.</p></div>`;
+      }
+
+      async function renderPayments() {
+        const { payments, units, users } = await getCompanyData();
+        const isOwner = currentUser.role === 'owner';
+        const isCaretaker = currentUser.role === 'caretaker';
+        const isTenant = currentUser.role === 'tenant';
+
+        $('#paymentsTitle').textContent = isTenant ? 'My Payments' : 'Payments';
+        $('#paymentsActions').innerHTML = (isOwner || isCaretaker) ?
+          `<button class="btn btn-primary btn-sm" onclick="openCrud('payment','add')"><i class="fas fa-plus"></i> Add Payment</button>` :
+          '';
+
+        const display = isTenant ? payments.filter(p => p.tenant_id === currentUser.id) : payments;
+        $('#paymentsTableBody').innerHTML = display.map(p => {
+          const unit = units.find(u => u.id === p.unit_id);
+          const tenant = users.find(u => u.id === p.tenant_id);
+          const dueStatus = unit && isRentDueWithPayments(unit, payments) ? 'overdue' : 'paid';
+          return `
+            <tr>
+              <td><strong>${unit ? unit.number : '—'}</strong></td>
+              <td>${tenant ? tenant.name : '—'}</td>
+              <td>${formatCurrency(p.amount)}</td>
+              <td>${formatDate(p.due)}</td>
+              <td>${getStatusPill(p.status)} ${dueStatus === 'overdue' ? '<span class="due-badge" style="margin-left:6px;">Overdue</span>' : ''}</td>
+              <td>${(isOwner || isCaretaker) ? `
+                <div style="display:flex; gap:6px;">
+                  <button class="btn btn-edit btn-sm" onclick="openCrud('payment','edit','${p.id}')"><i class="fas fa-edit"></i></button>
+                  <button class="btn btn-danger btn-sm" onclick="deletePayment('${p.id}')"><i class="fas fa-trash"></i></button>
+                </div>
+              ` : ''}</td>
+            </tr>
+          `;
+        }).join('') || `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">No payments.</td></tr>`;
+      }
+
+      async function renderDeposits() {
+        const { units } = await getCompanyData();
+        const isOwner = currentUser.role === 'owner';
+        const isCaretaker = currentUser.role === 'caretaker';
+        const isTenant = currentUser.role === 'tenant';
+
+        $('#depositsActions').innerHTML = (isOwner || isCaretaker) ?
+          `<button class="btn btn-outline btn-sm" onclick="showToast('📝 Damage form coming soon.','fa-tools')"><i class="fas fa-plus"></i> Record Damage</button>` :
+          '';
+
+        if (isTenant) {
+          const myUnit = units.find(u => u.tenant_id === currentUser.id);
+          $('#depositsSummary').innerHTML = `
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+              <div class="stat-card"><div class="stat-label">My Deposit</div><div class="stat-value" style="color:var(--kenya-green);">${myUnit && myUnit.deposit ? formatCurrency(myUnit.deposit) : '—'}</div><span>${myUnit ? myUnit.number : ''}</span></div>
+              <div class="stat-card" style="${myUnit && myUnit.damage ? 'border-color:var(--kenya-red);' : ''}"><div class="stat-label">Damage Status</div><div class="stat-value" style="font-size:20px;color:${myUnit && myUnit.damage ? 'var(--kenya-red)' : 'var(--kenya-green)'};">${myUnit && myUnit.damage ? '⚠️ Reported' : '✅ Clean'}</div><span>${myUnit && myUnit.damage ? myUnit.damage : 'No damages'}</span></div>
+            </div>
+          `;
+          const damaged = units.filter(u => u.tenant_id === currentUser.id && u.damage);
+          $('#damagesGrid').innerHTML = damaged.map(u => `
+            <div class="deposit-card" style="border-color:var(--kenya-red);">
+              <div class="amount">${formatCurrency(u.deposit || 0)}</div>
+              <div class="label">Deposit Held</div>
+              <div class="unit-ref">${u.number} · ${u.tenant_id ? 'You' : ''}</div>
+              <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light);font-size:13px;color:var(--kenya-red);"><i class="fas fa-exclamation-circle"></i> ${u.damage}</div>
+            </div>
+          `).join('') || `<div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-check-circle" style="color:var(--kenya-green);opacity:1;"></i><p>No damages for your unit.</p></div>`;
+          return;
+        }
+
+        const totalDeposits = units.filter(u => u.deposit).reduce((s, u) => s + u.deposit, 0);
+        const unclaimed = units.filter(u => u.status === 'vacant' && u.deposit).reduce((s, u) => s + u.deposit, 0);
+        $('#depositsSummary').innerHTML = `
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+            <div class="stat-card"><div class="stat-label">Total Deposits Held</div><div class="stat-value" style="color:var(--kenya-green);">${formatCurrency(totalDeposits)}</div><span>Across ${units.filter(u=>u.deposit).length} units</span></div>
+            <div class="stat-card" style="border-color:var(--kenya-red);"><div class="stat-label">Unclaimed Deposits</div><div class="stat-value" style="color:var(--kenya-red);">${formatCurrency(unclaimed)}</div><span>${units.filter(u=>u.status==='vacant'&&u.deposit).length} units</span></div>
+          </div>
+        `;
+
+        const damaged = units.filter(u => u.damage);
+        $('#damagesGrid').innerHTML = damaged.map(u => `
+          <div class="deposit-card">
+            <div class="amount">${formatCurrency(u.deposit || 0)}</div>
+            <div class="label">Deposit Held</div>
+            <div class="unit-ref">${u.number} · ${u.tenant_id ? 'Tenant' : 'Vacant'}</div>
+            <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light);font-size:13px;color:var(--kenya-red);"><i class="fas fa-exclamation-circle"></i> ${u.damage}</div>
+          </div>
+        `).join('') || `<div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-check-circle" style="color:var(--kenya-green);opacity:1;"></i><p>No damages reported.</p></div>`;
+      }
+
+      async function renderQueries() {
+        const { queries, units } = await getCompanyData();
+        const isOwner = currentUser.role === 'owner';
+        const isCaretaker = currentUser.role === 'caretaker';
+        const isTenant = currentUser.role === 'tenant';
+
+        const displayQueries = isTenant ? queries.filter(q => q.tenant_id === currentUser.id) : queries;
+        $('#queriesTitle').textContent = isTenant ? 'My Queries' : 'Queries';
+        $('#queriesCount').textContent = `${displayQueries.filter(q=>q.status==='open').length} open`;
+        $('#queriesListTitle').textContent = isTenant ? 'My Recent' : 'Recent Queries';
+        $('#queryFormTitle').textContent = isTenant ? 'Submit New Query' : 'Submit a Query';
+
+        if (isTenant) {
+          $('#queryFormFields').style.display = 'none';
+          $('#qName').value = currentUser.name;
+          const myUnit = units.find(u => u.tenant_id === currentUser.id);
+          $('#qUnit').value = myUnit ? myUnit.number : '';
+          $('#qName').readOnly = true;
+          $('#qUnit').readOnly = true;
+        } else {
+          $('#queryFormFields').style.display = 'grid';
+          $('#qName').readOnly = false;
+          $('#qUnit').readOnly = false;
+          $('#qName').value = '';
+          $('#qUnit').value = '';
+        }
+
+        $('#queryList').innerHTML = displayQueries.map(q => {
+          const unit = units.find(u => u.id === q.unit_id);
+          return `
+            <div class="query-item">
+              <div class="q-top"><span class="q-name">${q.name} · ${unit ? unit.number : '—'}</span><span class="q-time">${timeAgo(q.time)}</span></div>
+              <div class="q-text">${q.message}</div>
+              <span class="q-tag">${q.subject} · ${getStatusPill(q.status)}</span>
+              ${(isOwner || isCaretaker) ? `
+                <div class="q-actions">
+                  ${q.status === 'open' ? `<button class="btn btn-primary btn-sm" onclick="resolveQuery('${q.id}')"><i class="fas fa-check"></i> Resolve</button>` : ''}
+                  <button class="btn btn-danger btn-sm" onclick="deleteQuery('${q.id}')"><i class="fas fa-trash"></i></button>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('') || `<div class="empty-state"><i class="fas fa-inbox"></i><p>No queries.</p></div>`;
+      }
+
+      async function renderUsers() {
+        const { users } = await getCompanyData();
+        const isOwner = currentUser.role === 'owner';
+        if (!isOwner) { $('#usersGrid').innerHTML = ''; return; }
+
+        $('#usersActions').innerHTML =
+          `<button class="btn btn-primary btn-sm" onclick="openCrud('user','add')"><i class="fas fa-user-plus"></i> Add User</button>`;
+
+        $('#usersGrid').innerHTML = users.map(u => `
+          <div class="user-card">
+            <div class="user-info">
+              <div class="u-name">${u.name}</div>
+              <div class="u-email">${u.email}</div>
+              <div class="u-role"><i class="fas fa-${u.role === 'owner' ? 'crown' : u.role === 'caretaker' ? 'tools' : 'user'}"></i> ${u.role}</div>
+            </div>
+            <div class="user-actions">
+              <button class="btn btn-edit btn-sm" onclick="openCrud('user','edit','${u.id}')"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        `).join('') || `<div class="empty-state"><i class="fas fa-users"></i><p>No users.</p></div>`;
+      }
+
+      // ================================================================
+      // NAVIGATION
+      // ================================================================
+      function navigateTo(view) {
+        currentView = view;
+        Object.keys(views).forEach(key => views[key].classList.toggle('active', key === view));
+        sidebarNav.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.view === view));
+        closeSidebar();
+        const titles = { dashboard: 'Dashboard', units: 'Units', payments: 'Payments', deposits: 'Deposits & Damages', queries: 'Queries', users: 'Team' };
+        pageTitle.textContent = titles[view] || 'Dashboard';
+        if (view === 'dashboard') renderDashboard();
+        else if (view === 'units') renderUnits();
+        else if (view === 'payments') renderPayments();
+        else if (view === 'deposits') renderDeposits();
+        else if (view === 'queries') renderQueries();
+        else if (view === 'users') renderUsers();
+      }
+
+      // ================================================================
+      // SIDEBAR TOGGLE
+      // ================================================================
+      function openSidebar() { sidebar.classList.add('open'); sidebarOverlay.classList.add('active'); }
+      function closeSidebar() { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); }
+
+      // ================================================================
+      // CRUD MODAL
+      // ================================================================
+      window.openCrud = async function(type, mode, id = null) {
+        const modal = $('#crudModal');
+        const title = $('#crudModalTitle');
+        const fields = $('#crudFormFields');
+        const submit = $('#crudSubmitBtn');
+
+        const { units, users } = await getCompanyData();
+
+        let html = '';
+        let entity = null;
+        if (mode === 'edit' && id) {
+          if (type === 'unit') entity = units.find(u => u.id === id);
+          else if (type === 'payment') entity = (await supabase.from('payments').select('*').eq('id', id).single()).data;
+          else if (type === 'user') entity = users.find(u => u.id === id);
+        }
+
+        if (type === 'unit') {
+          title.textContent = mode === 'add' ? 'Add Unit' : 'Edit Unit';
+          const tenantOpts = users.filter(u => u.role === 'tenant' && (u.unit_id === null || u.unit_id === id)).map(u =>
+            `<option value="${u.id}" ${entity && entity.tenant_id === u.id ? 'selected' : ''}>${u.name} (${u.email})</option>`
+          ).join('');
+          html = `
+            <div class="form-group"><label>Unit Number</label><input type="text" id="f_unit_number" value="${entity ? entity.number : ''}" required /></div>
+            <div class="form-group"><label>Location</label><input type="text" id="f_unit_location" value="${entity ? entity.location : ''}" required /></div>
+            <div class="form-group"><label>Rent (KSh)</label><input type="number" id="f_unit_rent" value="${entity ? entity.rent : ''}" required /></div>
+            <div class="form-group"><label>Rent Due Day (1-31)</label><input type="number" id="f_unit_dueDay" value="${entity ? entity.rent_due_day || 5 : 5}" min="1" max="31" required /></div>
+            <div class="form-group"><label>Status</label><select id="f_unit_status"><option value="occupied" ${entity && entity.status === 'occupied' ? 'selected' : ''}>Occupied</option><option value="vacant" ${entity && entity.status === 'vacant' ? 'selected' : ''}>Vacant</option><option value="maintenance" ${entity && entity.status === 'maintenance' ? 'selected' : ''}>Maintenance</option></select></div>
+            <div class="form-group"><label>Tenant (optional)</label><select id="f_unit_tenant"><option value="">— None —</option>${tenantOpts}</select></div>
+            <div class="form-group"><label>Deposit (KSh)</label><input type="number" id="f_unit_deposit" value="${entity && entity.deposit ? entity.deposit : ''}" /></div>
+            <div class="form-group"><label>Damage (if any)</label><input type="text" id="f_unit_damage" value="${entity && entity.damage ? entity.damage : ''}" placeholder="e.g. Broken window" /></div>
+          `;
+          submit.onclick = async (e) => {
+            e.preventDefault();
+            const data = {
+              number: $('#f_unit_number').value,
+              location: $('#f_unit_location').value,
+              rent: parseInt($('#f_unit_rent').value),
+              rentDueDay: parseInt($('#f_unit_dueDay').value) || 5,
+              status: $('#f_unit_status').value,
+              tenantId: $('#f_unit_tenant').value || null,
+              deposit: parseInt($('#f_unit_deposit').value) || null,
+              damage: $('#f_unit_damage').value || null
+            };
+            if (mode === 'add') await addUnit(data);
+            else await updateUnit(id, data);
+            closeModal('#crudModal');
+          };
+        } else if (type === 'payment') {
+          title.textContent = mode === 'add' ? 'Add Payment' : 'Edit Payment';
+          const unitOpts = units.map(u =>
+            `<option value="${u.id}" ${entity && entity.unit_id === u.id ? 'selected' : ''}>${u.number}</option>`).join('');
+          const tenantOpts = users.filter(u => u.role === 'tenant').map(u =>
+            `<option value="${u.id}" ${entity && entity.tenant_id === u.id ? 'selected' : ''}>${u.name}</option>`).join('');
+          html = `
+            <div class="form-group"><label>Unit</label><select id="f_pay_unit">${unitOpts}</select></div>
+            <div class="form-group"><label>Tenant</label><select id="f_pay_tenant">${tenantOpts}</select></div>
+            <div class="form-group"><label>Amount (KSh)</label><input type="number" id="f_pay_amount" value="${entity ? entity.amount : ''}" required /></div>
+            <div class="form-group"><label>Due Date</label><input type="date" id="f_pay_due" value="${entity ? entity.due : ''}" required /></div>
+            <div class="form-group"><label>Status</label><select id="f_pay_status"><option value="paid" ${entity && entity.status === 'paid' ? 'selected' : ''}>Paid</option><option value="unpaid" ${entity && entity.status === 'unpaid' ? 'selected' : ''}>Unpaid</option><option value="partial" ${entity && entity.status === 'partial' ? 'selected' : ''}>Partial</option></select></div>
+          `;
+          submit.onclick = async (e) => {
+            e.preventDefault();
+            const data = {
+              unitId: $('#f_pay_unit').value,
+              tenantId: $('#f_pay_tenant').value,
+              amount: parseInt($('#f_pay_amount').value),
+              due: $('#f_pay_due').value,
+              status: $('#f_pay_status').value
+            };
+            if (mode === 'add') await addPayment(data);
+            else await updatePayment(id, data);
+            closeModal('#crudModal');
+          };
+        } else if (type === 'user') {
+          title.textContent = mode === 'add' ? 'Add User' : 'Edit User';
+          html = `
+            <div class="form-group"><label>Full Name</label><input type="text" id="f_user_name" value="${entity ? entity.name : ''}" required /></div>
+            <div class="form-group"><label>Email</label><input type="email" id="f_user_email" value="${entity ? entity.email : ''}" required /></div>
+            <div class="form-group"><label>Password</label><input type="password" id="f_user_password" value="${entity ? entity.password : ''}" required minlength="6" /></div>
+            <div class="form-group"><label>Phone (M-PESA)</label><input type="tel" id="f_user_phone" value="${entity ? entity.phone || '' : ''}" placeholder="254712345678" /></div>
+            <div class="form-group"><label>Role</label><select id="f_user_role"><option value="caretaker" ${entity && entity.role === 'caretaker' ? 'selected' : ''}>Caretaker</option><option value="tenant" ${entity && entity.role === 'tenant' ? 'selected' : ''}>Tenant</option></select></div>
+            ${mode === 'edit' && entity && entity.role === 'tenant' ? `<div class="form-group"><label>Unit</label><select id="f_user_unit"><option value="">— None —</option>${units.map(u=>`<option value="${u.id}" ${entity.unit_id === u.id ? 'selected' : ''}>${u.number}</option>`).join('')}</select></div>` : ''}
+          `;
+          submit.onclick = async (e) => {
+            e.preventDefault();
+            const data = {
+              name: $('#f_user_name').value,
+              email: $('#f_user_email').value,
+              password: $('#f_user_password').value,
+              phone: $('#f_user_phone').value || '',
+              role: $('#f_user_role').value,
+              unitId: $('#f_user_unit') ? $('#f_user_unit').value || null : null
+            };
+            if (mode === 'add') await addUser(data);
+            else await updateUser(id, data);
+            closeModal('#crudModal');
+          };
+        }
+        fields.innerHTML = html;
+        modal.classList.add('active');
+      };
+
+      function closeModal(selector) {
+        document.querySelector(selector).classList.remove('active');
+      }
+
+      // ================================================================
+      // REAL-TIME SUBSCRIPTIONS
+      // ================================================================
+      function subscribeToChanges() {
+        const channel = supabase
+          .channel('public:companies')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'companies' }, () => renderAll())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => renderAll())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'units' }, () => renderAll())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, () => renderAll())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'queries' }, () => renderAll())
+          .subscribe();
+      }
+
+      // ================================================================
+      // RENDER ALL
+      // ================================================================
+      async function renderAll() {
+        await renderSidebar();
+        await renderDashboard();
+        await renderUnits();
+        await renderPayments();
+        await renderDeposits();
+        await renderQueries();
+        await renderUsers();
+        updateDate();
+      }
+
+      // ================================================================
+      // DATE
+      // ================================================================
+      function updateDate() {
+        const now = new Date();
+        dateBadge.textContent = now.toLocaleDateString('en-KE', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      // ================================================================
+      // EVENTS
+      // ================================================================
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        login(loginEmail.value.trim(), loginPassword.value.trim());
+      });
+
+      logoutBtn.addEventListener('click', logout);
+
+      menuToggle.addEventListener('click', () => {
+        if (sidebar.classList.contains('open')) closeSidebar();
+        else openSidebar();
+      });
+      sidebarOverlay.addEventListener('click', closeSidebar);
+
+      openRegisterBtn.addEventListener('click', () => registerModal.classList.add('active'));
+      closeRegisterBtn.addEventListener('click', () => registerModal.classList.remove('active'));
+      registerModal.addEventListener('click', (e) => { if (e.target === registerModal) registerModal.classList.remove('active'); });
+
+      regRole.addEventListener('change', () => {
+        if (regRole.value === 'owner') {
+          regCompanyGroup.classList.remove('hidden');
+          regCodeGroup.classList.add('hidden');
+          regTillGroup.classList.remove('hidden');
+        } else {
+          regCompanyGroup.classList.add('hidden');
+          regCodeGroup.classList.remove('hidden');
+          regTillGroup.classList.add('hidden');
+        }
+      });
+
+      registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = {
+          name: $('#regName').value,
+          email: $('#regEmail').value,
+          password: $('#regPassword').value,
+          role: regRole.value,
+          companyName: $('#regCompanyName').value,
+          companyCode: $('#regCompanyCode').value,
+          till: $('#regTill').value.trim(),
+          phone: ''
+        };
+        const success = await register(data);
+        if (success) {
+          registerModal.classList.remove('active');
+          registerForm.reset();
+          regCompanyGroup.classList.remove('hidden');
+          regCodeGroup.classList.add('hidden');
+          regTillGroup.classList.remove('hidden');
+          showToast('✅ Registration successful! You can now log in.', 'fa-check');
+        }
+      });
+
+      $('#closeCrudBtn').addEventListener('click', () => closeModal('#crudModal'));
+      $('#crudModal').addEventListener('click', (e) => { if (e.target === $('#crudModal')) closeModal('#crudModal'); });
+
+      closeMpesaBtn.addEventListener('click', closeMpesa);
+      mpesaModal.addEventListener('click', (e) => { if (e.target === mpesaModal) closeMpesa(); });
+      mpesaPayBtn.addEventListener('click', processMpesaPayment);
+
+      $('#queryForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = $('#qName').value.trim();
+        const unit = $('#qUnit').value.trim();
+        const subject = $('#qSubject').value;
+        const message = $('#qMessage').value.trim();
+        if (!name || !unit || !message) return showToast('❌ Please fill all fields.', 'fa-exclamation-circle');
+
+        const { units } = await getCompanyData();
+        const unitObj = units.find(u => u.number === unit);
+        if (!unitObj) return showToast('❌ Unit not found in your company.', 'fa-exclamation-circle');
+
+        const { error } = await supabase
+          .from('queries')
+          .insert({
+            company_id: currentCompany.id,
+            unit_id: unitObj.id,
+            tenant_id: currentUser.role === 'tenant' ? currentUser.id : null,
+            name,
+            subject,
+            message,
+            time: new Date().toISOString(),
+            status: 'open'
+          });
+        if (error) { showToast('❌ ' + error.message, 'fa-exclamation-circle'); return; }
+        showToast('✅ Query submitted!', 'fa-paper-plane');
+        $('#queryForm').reset();
+        if (currentUser.role === 'tenant') {
+          $('#qName').value = currentUser.name;
+          $('#qUnit').value = unit;
+        }
+        renderQueries();
+      });
+
+      copyCodeBtn.addEventListener('click', () => {
+        const code = companyCodeText.textContent;
+        if (code && navigator.clipboard) {
+          navigator.clipboard.writeText(code).then(() => {
+            showToast('📋 Company code copied!', 'fa-copy');
+          }).catch(() => {
+            const ta = document.createElement('textarea');
+            ta.value = code;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('📋 Company code copied!', 'fa-copy');
+          });
+        }
+      });
+
+      document.getElementById('demoLogin').addEventListener('click', () => {
+        showToast('💡 Please register first, then log in with your credentials.', 'fa-info-circle');
+        registerModal.classList.add('active');
+      });
+
+      // ================================================================
+      // KEYBOARD SHORTCUTS
+      // ================================================================
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeSidebar();
+          closeModal('#crudModal');
+          closeModal('#registerModal');
+          closeMpesa();
+        }
+      });
+
+      // ================================================================
+      // INIT – Check existing session
+      // ================================================================
+      supabase.auth.getSession().then(async ({ data }) => {
+        if (data.session) {
+          const { data: userProfile, error } = await supabase
+            .from('users')
+            .select('*, companies(*)')
+            .eq('id', data.session.user.id)
+            .single();
+          if (!error && userProfile) {
+            currentUser = userProfile;
+            currentCompany = userProfile.companies;
+            loginPage.classList.add('hidden');
+            app.classList.add('visible');
+            await renderAll();
+            subscribeToChanges();
+            showToast(`🇰🇪 Welcome back, ${currentUser.name}!`, 'fa-building');
+            return;
+          }
+        }
+        loginPage.classList.remove('hidden');
+        app.classList.remove('visible');
+      });
+
+      console.log('🚀 RentalPro with Supabase – ready to go!');
+      console.log('💡 Register a new account first, then login.');
+
+      // Expose functions globally for onclick
+      window.openMpesa = openMpesa;
+      window.openCrud = openCrud;
+      window.deleteUnit = deleteUnit;
+      window.deletePayment = deletePayment;
+      window.deleteUser = deleteUser;
+      window.resolveQuery = resolveQuery;
+      window.deleteQuery = deleteQuery;
+      window.showToast = showToast;
+
+    })();
+  </script>
+</body>
+</html>
