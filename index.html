@@ -1011,7 +1011,7 @@
     </div>
   </div>
 
-  <!-- ===== NEW: POST ANNOUNCEMENT MODAL (OWNER & CARETAKER) ===== -->
+  <!-- ===== POST ANNOUNCEMENT MODAL (OWNER & CARETAKER) ===== -->
   <div class="modal-overlay" id="announcementModal">
     <div class="modal-box">
       <button class="modal-close" id="closeAnnouncementModal">&times;</button>
@@ -1539,6 +1539,7 @@
         if (error) {
           showToast('❌ Could not dismiss: ' + error.message, 'fa-exclamation-circle');
         } else {
+          // Re-fetch and re-render
           allNotifications = await fetchNotifications();
           renderNotificationPanel();
         }
@@ -1594,7 +1595,6 @@
           // Remove from local list
           allAnnouncements = allAnnouncements.filter(a => a.id !== announcementId);
           renderAnnouncements();
-          // Also update the panel count (optional)
         }
       }
 
@@ -1612,7 +1612,6 @@
           showToast('❌ Failed to post: ' + error.message, 'fa-exclamation-circle');
         } else {
           showToast('📢 Announcement posted!', 'fa-bullhorn');
-          // Re-fetch to show new one (it won't be read yet)
           await fetchAnnouncements();
         }
       }
@@ -2245,7 +2244,6 @@
         const wrapper = announcementPanelWrapper;
         if (!currentUser) return;
 
-        // Show "Post Announcement" button for owners and caretakers
         const canPost = (currentUser.role === 'owner' || currentUser.role === 'caretaker');
         const postButtonHtml = canPost ?
           `<div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
@@ -2261,7 +2259,6 @@
               <div class="announce-empty"><i class="fas fa-bullhorn"></i><p>No announcements</p></div>
             </div>
           `;
-          // Attach event to the button if exists
           const btn = document.getElementById('postAnnouncementBtn');
           if (btn) btn.addEventListener('click', openAnnouncementModal);
           return;
@@ -2289,16 +2286,12 @@
         html += `</div>`;
         wrapper.innerHTML = html;
 
-        // Attach event to the post button (if exists)
         const btn = document.getElementById('postAnnouncementBtn');
         if (btn) btn.addEventListener('click', openAnnouncementModal);
-
-        // Re-bind the onclick functions (since we used inline onclick, they are global)
-        // The functions are already exposed globally via window.
       }
 
       // ================================================================
-      // RENDER: NOTIFICATION PANEL (OWNER ONLY)
+      // RENDER: NOTIFICATION PANEL (OWNER ONLY) – NOW FILTERS UNREAD
       // ================================================================
       function renderNotificationPanel() {
         const wrapper = $('#notificationPanelWrapper');
@@ -2307,11 +2300,14 @@
           return;
         }
 
-        if (allNotifications.length === 0) {
+        // 👇 KEY CHANGE: Only show unread notifications
+        const unreadNotifications = allNotifications.filter(n => !n.read);
+
+        if (unreadNotifications.length === 0) {
           wrapper.innerHTML = `
             <div class="notif-panel">
               <h4 style="font-size:16px; font-weight:600; margin-bottom:12px;"><i class="fas fa-bell" style="color:var(--kenya-gold);"></i> Notifications</h4>
-              <div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications</p></div>
+              <div class="notif-empty"><i class="fas fa-check-circle" style="color:var(--kenya-green);opacity:0.6;"></i><p>All caught up! No unread notifications.</p></div>
             </div>
           `;
           return;
@@ -2319,10 +2315,9 @@
 
         let html = `
           <div class="notif-panel">
-            <h4 style="font-size:16px; font-weight:600; margin-bottom:12px;"><i class="fas fa-bell" style="color:var(--kenya-gold);"></i> Notifications</h4>
+            <h4 style="font-size:16px; font-weight:600; margin-bottom:12px;"><i class="fas fa-bell" style="color:var(--kenya-gold);"></i> Notifications (${unreadNotifications.length})</h4>
         `;
-        allNotifications.slice(0, 20).forEach(n => {
-          const isUnread = !n.read;
+        unreadNotifications.slice(0, 20).forEach(n => {
           const icon = n.type === 'success' ? 'check-circle' : n.type === 'warning' ? 'exclamation-triangle' :
             'info-circle';
           const iconClass = n.type || 'info';
@@ -2333,7 +2328,9 @@
                 <div class="msg">${n.message}</div>
                 <div class="time">${timeAgo(n.created_at)}</div>
               </div>
-              ${isUnread ? `<div class="notif-dismiss"><button class="btn btn-dismiss btn-sm" onclick="dismissNotification('${n.id}')"><i class="fas fa-times"></i> Dismiss</button></div>` : ''}
+              <div class="notif-dismiss">
+                <button class="btn btn-dismiss btn-sm" onclick="dismissNotification('${n.id}')"><i class="fas fa-times"></i> Dismiss</button>
+              </div>
             </div>
           `;
         });
@@ -2525,7 +2522,7 @@
         }
         $('#dashboardSub').textContent = subMsg;
 
-        // Notifications – only for owner
+        // Notifications – only for owner (filtered in renderNotificationPanel)
         allNotifications = await fetchNotifications();
         renderNotificationPanel();
 
@@ -3279,7 +3276,6 @@
       // ================================================================
       function openAnnouncementModal() {
         if (!currentUser) return showToast('❌ Please log in.', 'fa-exclamation-circle');
-        // Only owners and caretakers can post
         if (currentUser.role !== 'owner' && currentUser.role !== 'caretaker') {
           return showToast('❌ Only owners and caretakers can post announcements.', 'fa-exclamation-circle');
         }
