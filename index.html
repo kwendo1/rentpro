@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* ===== CSS (same as before, with additions for notification panel and plan selection) ===== */
+    /* ===== CSS (same as before) ===== */
     :root {
       --kenya-green: #1a5c2a;
       --kenya-red: #a81010;
@@ -100,11 +100,10 @@
     }
     .login-footer-actions .register-link { color: var(--kenya-gold); font-weight: 600; font-size: 14px; cursor: pointer; transition: var(--transition); }
     .login-footer-actions .register-link:hover { opacity: 0.8; }
-    .login-footer-actions .demo-hint { font-size: 11px; color: rgba(255,255,255,0.3); cursor: pointer; }
     .login-footer-actions .forgot-link { color: rgba(255,255,255,0.5); font-size: 12px; cursor: pointer; transition: var(--transition); }
     .login-footer-actions .forgot-link:hover { color: #fff; }
 
-    /* ===== REGISTER MODAL (unchanged) ===== */
+    /* ===== REGISTER MODAL ===== */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 99999;
@@ -139,23 +138,15 @@
     .modal-box .key-display {
       background: #f0f7f0; padding: 12px 16px; border-radius: var(--radius-sm);
       border: 1px solid var(--kenya-green); font-family: monospace; font-size: 16px;
-      display: flex; justify-content: space-between; align-items: center;
-      margin: 10px 0;
+      display: flex; justify-content: space-between; align-items: center; margin: 10px 0;
     }
-    .modal-box .key-display .copy-btn {
-      color: var(--kenya-green); font-size: 18px; cursor: pointer;
-    }
-    .modal-box .file-input-wrapper {
-      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    }
+    .modal-box .key-display .copy-btn { color: var(--kenya-green); font-size: 18px; cursor: pointer; }
+    .modal-box .file-input-wrapper { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .modal-box .file-input-wrapper input[type="file"] { flex: 1; padding: 8px; }
-    .modal-box .file-input-wrapper .preview {
-      width: 60px; height: 60px; border-radius: 8px; object-fit: cover;
-      border: 1px solid var(--border-light);
-    }
+    .modal-box .file-input-wrapper .preview { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-light); }
     .modal-box .required-star { color: var(--kenya-red); margin-left: 4px; }
 
-    /* ===== TERMS MODAL (unchanged) ===== */
+    /* ===== TERMS MODAL ===== */
     .terms-modal .modal-box { max-width: 720px; }
     .terms-modal .modal-box .legal-content {
       max-height: 400px; overflow-y: auto; padding: 16px;
@@ -163,8 +154,7 @@
       margin: 16px 0; font-size: 14px; line-height: 1.8; color: var(--text-secondary);
     }
     .terms-modal .modal-box .legal-content h4 { color: var(--kenya-green); margin: 12px 0 6px; }
-    .terms-modal .modal-box .legal-content p { margin-bottom: 8px; }
-    .terms-modal .modal-box .accept-checkboxes {
+    .terms-modal .modal-box .accept-checkchecks {
       display: flex; flex-direction: column; gap: 8px; margin: 12px 0;
     }
     .terms-modal .modal-box .accept-checkboxes label {
@@ -176,7 +166,6 @@
 
     /* ===== FORGOT PASSWORD MODAL ===== */
     .forgot-modal .modal-box { max-width: 440px; }
-    .forgot-modal .modal-box .btn-primary { margin-top: 8px; }
 
     /* ===== MAIN APP ===== */
     #app { display: none; min-height: 100vh; }
@@ -342,6 +331,8 @@
     .btn-mpesa:hover { background: #008c4a; }
     .btn-warning { background: #e67e22; color: #fff; }
     .btn-warning:hover { background: #c96a1a; }
+    .btn-success { background: #00a859; color: #fff; }
+    .btn-success:hover { background: #008c4a; }
 
     .buildings-grid, .units-grid {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
@@ -448,8 +439,7 @@
     }
     .notif-panel .notif-item:last-child { border-bottom: none; }
     .notif-panel .notif-item .notif-icon {
-      font-size: 18px; width: 32px; text-align: center; flex-shrink: 0;
-      margin-top: 2px;
+      font-size: 18px; width: 32px; text-align: center; flex-shrink: 0; margin-top: 2px;
     }
     .notif-panel .notif-item .notif-icon.info { color: var(--kenya-green); }
     .notif-panel .notif-item .notif-icon.warning { color: #e67e22; }
@@ -458,15 +448,12 @@
     .notif-panel .notif-item .notif-content { flex: 1; }
     .notif-panel .notif-item .notif-content .msg { font-size: 14px; color: var(--text-secondary); }
     .notif-panel .notif-item .notif-content .time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-    .notif-panel .notif-empty {
-      text-align: center; padding: 20px; color: var(--text-muted);
-    }
+    .notif-panel .notif-empty { text-align: center; padding: 20px; color: var(--text-muted); }
     .notif-panel .notif-empty i { font-size: 32px; opacity: 0.2; margin-bottom: 8px; }
 
     /* ===== PLAN SELECTION ===== */
     .plan-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;
-      margin-top: 16px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 16px;
     }
     .plan-card {
       background: var(--bg-card); border-radius: var(--radius);
@@ -795,7 +782,7 @@
         <div id="planRequestStatus" style="margin-top:16px;"></div>
       </section>
 
-      <!-- VIEW: BUILDINGS (Admin only) -->
+      <!-- VIEW: BUILDINGS -->
       <section class="view" id="view-buildings">
         <div class="section-header" style="margin-top:4px;">
           <h3><i class="fas fa-building"></i> Properties / Buildings</h3>
@@ -866,7 +853,7 @@
         </div>
       </section>
 
-      <!-- VIEW: USERS (Admin/Caretaker) -->
+      <!-- VIEW: USERS -->
       <section class="view" id="view-users">
         <div class="section-header" style="margin-top:4px;">
           <h3><i class="fas fa-users"></i> Team Members</h3>
@@ -875,7 +862,7 @@
         <div class="users-grid" id="usersGrid"></div>
       </section>
 
-      <!-- VIEW: REPORTS (Admin only) -->
+      <!-- VIEW: REPORTS -->
       <section class="view" id="view-reports">
         <div class="section-header" style="margin-top:4px;">
           <h3><i class="fas fa-chart-bar"></i> Reports</h3>
@@ -961,7 +948,8 @@
       // SUPABASE CONFIG
       // ================================================================
       const SUPABASE_URL = 'https://kmfxnetauisbbhijjseo.supabase.co';
-      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImttZnhuZXRhdWlzYmJoaWpqc2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTQwMTEsImV4cCI6MjEwMjAzMDAxMX0.fOTDjVDgB80FZXgS7Cyfp2capOdL5282CePS9SQoeVI';
+      const SUPABASE_ANON_KEY =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImttZnhuZXRhdWlzYmJoaWpqc2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTQwMTEsImV4cCI6MjEwMjAzMDAxMX0.fOTDjVDgB80FZXgS7Cyfp2capOdL5282CePS9SQoeVI';
 
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -1198,7 +1186,6 @@
             if (company.subscription_end) {
               const days = daysBetween(new Date(), new Date(company.subscription_end));
               if (days < 0 && company.status !== 'locked') {
-                // Lock account automatically
                 await supabase.from('companies').update({ status: 'locked' }).eq('id', company.id);
                 company.status = 'locked';
               }
@@ -1411,16 +1398,20 @@
       // NOTIFICATIONS
       // ================================================================
       async function addNotification(companyId, userId, message, type = 'info') {
-        const { error } = await supabase
-          .from('user_notifications')
-          .insert({
-            company_id: companyId,
-            user_id: userId || null,
-            message: message,
-            type: type,
-            read: false
-          });
-        if (error) console.error('Notification error:', error);
+        try {
+          const { error } = await supabase
+            .from('user_notifications')
+            .insert({
+              company_id: companyId,
+              user_id: userId || null,
+              message: message,
+              type: type,
+              read: false
+            });
+          if (error) console.error('Notification insert error:', error);
+        } catch (err) {
+          console.error('Notification failed:', err);
+        }
       }
 
       async function fetchNotifications() {
@@ -1430,7 +1421,10 @@
           .select('*')
           .eq('company_id', currentCompany.id)
           .order('created_at', { ascending: false });
-        if (error) return [];
+        if (error) {
+          console.error('Fetch notifications error:', error);
+          return [];
+        }
         return data || [];
       }
 
@@ -1480,13 +1474,19 @@
 
       async function requestSubscriptionPlan(planType, tier, amount) {
         if (!currentCompany) return;
+
         // Check if already pending
-        const { data: existing } = await supabase
+        const { data: existing, error: checkError } = await supabase
           .from('subscription_requests')
-          .select('*')
+          .select('id')
           .eq('company_id', currentCompany.id)
           .eq('status', 'pending')
-          .single();
+          .maybeSingle();
+
+        if (checkError) {
+          console.error('Check pending error:', checkError);
+        }
+
         if (existing) {
           showToast('❌ You already have a pending request.', 'fa-exclamation-circle');
           return;
@@ -1501,13 +1501,19 @@
             amount: amount,
             status: 'pending'
           });
+
         if (error) {
           showToast('❌ ' + error.message, 'fa-exclamation-circle');
           return;
         }
-        await addNotification(currentCompany.id, currentUser.id,
+
+        await addNotification(
+          currentCompany.id,
+          currentUser.id,
           `📩 Your subscription request (${PLANS[planType].label} · ${tier} units · ${formatCurrency(amount)}) has been sent to admin for approval.`,
-          'info');
+          'info'
+        );
+
         showToast('✅ Request sent to admin.', 'fa-check');
         renderPlans();
       }
@@ -1545,7 +1551,7 @@
       }
 
       // ================================================================
-      // CRUD OPERATIONS (unchanged from original)
+      // CRUD OPERATIONS
       // ================================================================
       async function addBuilding(data) {
         const { error } = await supabase
@@ -1808,7 +1814,7 @@
       }
 
       // ================================================================
-      // M-PESA (unchanged)
+      // M-PESA
       // ================================================================
       function openMpesa(unitId, tenantId, amount) {
         if (!currentCompany.till) {
@@ -2020,7 +2026,7 @@
       }
 
       // ================================================================
-      // RENDER: HELP (unchanged)
+      // RENDER: HELP
       // ================================================================
       function renderHelp() {
         const role = currentUser ? currentUser.role : 'guest';
@@ -2200,7 +2206,7 @@
         if (allNotifications.length === 0) {
           notifList.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications</p></div>`;
         } else {
-          notifList.innerHTML = allNotifications.slice(0, 5).map(n => `
+          notifList.innerHTML = allNotifications.slice(0, 10).map(n => `
             <div class="notif-item">
               <div class="notif-icon ${n.type}"><i class="fas fa-${n.type === 'success' ? 'check-circle' : n.type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i></div>
               <div class="notif-content">
@@ -2209,8 +2215,8 @@
               </div>
             </div>
           `).join('');
-          // Mark as read (optional)
-          allNotifications.slice(0, 5).forEach(n => markNotificationRead(n.id));
+          // Mark as read
+          allNotifications.slice(0, 10).forEach(n => markNotificationRead(n.id));
         }
 
         // Stats
@@ -2293,12 +2299,16 @@
         $('#currentPlanDisplay').textContent = currentPlan ? `${currentPlan.label} (${currentPlan.days}d left)` : 'Trial';
 
         // Check pending request
-        const { data: pending } = await supabase
+        const { data: pending, error: pendingError } = await supabase
           .from('subscription_requests')
           .select('*')
           .eq('company_id', currentCompany.id)
           .eq('status', 'pending')
-          .single();
+          .maybeSingle();
+
+        if (pendingError) {
+          console.error('Pending request error:', pendingError);
+        }
 
         let statusHtml = '';
         if (pending) {
@@ -2338,7 +2348,7 @@
       }
 
       // ================================================================
-      // RENDER: BUILDINGS (unchanged)
+      // RENDER: BUILDINGS
       // ================================================================
       async function renderBuildings() {
         const { buildings, users } = await getCompanyData();
@@ -2351,7 +2361,8 @@
         `;
 
         if (buildings.length === 0) {
-          $('#buildingsGrid').innerHTML = `<div class="empty-state"><i class="fas fa-building"></i><p>No buildings added yet.</p></div>`;
+          $('#buildingsGrid').innerHTML =
+          `<div class="empty-state"><i class="fas fa-building"></i><p>No buildings added yet.</p></div>`;
           return;
         }
 
@@ -2376,7 +2387,7 @@
       }
 
       // ================================================================
-      // RENDER: UNITS (unchanged)
+      // RENDER: UNITS
       // ================================================================
       async function renderUnits() {
         const { units, users, payments, buildings } = await getCompanyData();
@@ -2422,7 +2433,7 @@
       }
 
       // ================================================================
-      // RENDER: PAYMENTS (unchanged)
+      // RENDER: PAYMENTS
       // ================================================================
       async function renderPayments() {
         const { payments, units, users } = await getCompanyData();
@@ -2459,7 +2470,7 @@
       }
 
       // ================================================================
-      // RENDER: DEPOSITS (unchanged)
+      // RENDER: DEPOSITS
       // ================================================================
       async function renderDeposits() {
         const { units } = await getCompanyData();
@@ -2512,7 +2523,7 @@
       }
 
       // ================================================================
-      // RENDER: QUERIES (unchanged)
+      // RENDER: QUERIES
       // ================================================================
       async function renderQueries() {
         const { queries, units } = await getCompanyData();
@@ -2560,7 +2571,7 @@
       }
 
       // ================================================================
-      // RENDER: USERS (unchanged)
+      // RENDER: USERS
       // ================================================================
       async function renderUsers() {
         const { users, units } = await getCompanyData();
@@ -2611,7 +2622,7 @@
       }
 
       // ================================================================
-      // RENDER: REPORTS (unchanged)
+      // RENDER: REPORTS
       // ================================================================
       async function renderReports() {
         const isOwner = currentUser.role === 'owner';
@@ -2691,7 +2702,7 @@
         sidebarOverlay.classList.remove('active'); }
 
       // ================================================================
-      // CRUD MODAL (unchanged)
+      // CRUD MODAL
       // ================================================================
       window.openCrud = async function(type, mode, id = null, forcedRole = null) {
         const modal = $('#crudModal');
@@ -2943,7 +2954,7 @@
             app.classList.add('locked');
             showToast('🔒 Your subscription has expired. Please renew.', 'fa-lock');
           } else if (days >= 0 && currentCompany.status === 'locked') {
-            // Unlock if renewed (admin may have set active)
+            // Unlock if renewed
             const { data } = await supabase.from('companies').select('status').eq('id', currentCompany.id).single();
             if (data && data.status === 'active') {
               app.classList.remove('locked');
@@ -2993,7 +3004,7 @@
         if (!email) return showToast('❌ Please enter your email.', 'fa-exclamation-circle');
         forgotStatus.textContent = '⏳ Sending reset link...';
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin + window.location.pathname, // redirect back to this page
+          redirectTo: window.location.origin + window.location.pathname,
         });
         if (error) {
           forgotStatus.textContent = '❌ ' + error.message;
@@ -3145,7 +3156,6 @@
             await renderAll();
             subscribeToChanges();
 
-            // Check lock status
             if (currentCompany && currentCompany.status === 'locked') {
               app.classList.add('locked');
               showToast('🔒 Your account is locked. Please contact admin to renew subscription.', 'fa-lock');
