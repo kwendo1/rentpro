@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* ===== CSS (same as before) ===== */
+    /* ===== CSS (same as before, with minor additions for the new button and modal) ===== */
     :root {
       --kenya-green: #1a5c2a;
       --kenya-red: #a81010;
@@ -124,12 +124,12 @@
     .modal-box .modal-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 22px; }
     .modal-box .form-group { margin-bottom: 16px; }
     .modal-box label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 5px; }
-    .modal-box input, .modal-box select {
+    .modal-box input, .modal-box select, .modal-box textarea {
       width: 100%; padding: 12px 16px; border-radius: var(--radius-sm);
       border: 1px solid var(--border-light); font-size: 14px; transition: var(--transition);
       background: #fff; color: var(--text-primary);
     }
-    .modal-box input:focus, .modal-box select:focus {
+    .modal-box input:focus, .modal-box select:focus, .modal-box textarea:focus {
       border-color: var(--kenya-green); box-shadow: 0 0 0 3px rgba(26,92,42,0.1);
     }
     .modal-box .btn-primary { width: 100%; justify-content: center; padding: 14px; }
@@ -758,6 +758,12 @@
           <h2 style="font-size:22px; font-weight:600;" id="dashboardGreeting">Habari 👋</h2>
           <p class="greeting" id="dashboardSub">Welcome back.</p>
         </div>
+
+        <!-- ===== NEW: Message Admin Button ===== -->
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+          <button class="btn btn-gold" id="messageAdminBtn"><i class="fas fa-envelope"></i> Message Admin</button>
+        </div>
+
         <!-- Notification Panel -->
         <div class="notif-panel" id="notificationPanel">
           <h4 style="font-size:16px; font-weight:600; margin-bottom:12px;"><i class="fas fa-bell" style="color:var(--kenya-gold);"></i> Notifications</h4>
@@ -937,6 +943,26 @@
     </div>
   </div>
 
+  <!-- ===== NEW: Message Admin Modal ===== -->
+  <div class="modal-overlay" id="messageAdminModal">
+    <div class="modal-box">
+      <button class="modal-close" id="closeMessageAdminModal">&times;</button>
+      <h2><i class="fas fa-envelope" style="color:var(--kenya-gold);"></i> Send Message to Admin</h2>
+      <p class="modal-sub">Your message will be sent directly to the RentalPro admin team. They will get back to you shortly.</p>
+      <form id="messageAdminForm">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input type="text" id="msgName" required readonly />
+        </div>
+        <div class="form-group">
+          <label>Message</label>
+          <textarea id="msgContent" rows="5" placeholder="Write your message here…" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-gold w-full"><i class="fas fa-paper-plane"></i> Send Message</button>
+      </form>
+    </div>
+  </div>
+
   <!-- ============================================================ -->
   <!-- ===== JAVASCRIPT ===== -->
   <!-- ============================================================ -->
@@ -1054,6 +1080,14 @@
       const mpesaPayBtn = $('#mpesaPayBtn');
       const mpesaStatus = $('#mpesaStatus');
       const closeMpesaBtn = $('#closeMpesaBtn');
+
+      // ===== NEW: Message Admin Modal =====
+      const messageAdminModal = $('#messageAdminModal');
+      const messageAdminForm = $('#messageAdminForm');
+      const msgName = $('#msgName');
+      const msgContent = $('#msgContent');
+      const closeMessageAdminBtn = $('#closeMessageAdminModal');
+      const messageAdminBtn = $('#messageAdminBtn');
 
       // ================================================================
       // TOAST
@@ -3110,6 +3144,50 @@
         registerModal.classList.add('active');
       });
 
+      // ===== NEW: Message Admin Modal Logic =====
+      function openMessageAdmin() {
+        if (!currentUser) return showToast('❌ Please log in.', 'fa-exclamation-circle');
+        msgName.value = currentUser.name || 'Client';
+        msgContent.value = '';
+        messageAdminModal.classList.add('active');
+      }
+
+      function closeMessageAdmin() {
+        messageAdminModal.classList.remove('active');
+      }
+
+      messageAdminBtn.addEventListener('click', openMessageAdmin);
+      closeMessageAdminBtn.addEventListener('click', closeMessageAdmin);
+      messageAdminModal.addEventListener('click', (e) => {
+        if (e.target === messageAdminModal) closeMessageAdmin();
+      });
+
+      messageAdminForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fromName = msgName.value.trim();
+        const message = msgContent.value.trim();
+        if (!message) return showToast('❌ Please write a message.', 'fa-exclamation-circle');
+
+        if (!currentCompany) return showToast('❌ No company associated.', 'fa-exclamation-circle');
+
+        const { error } = await supabase
+          .from('admin_notifications')
+          .insert({
+            company_id: currentCompany.id,
+            from_name: fromName,
+            message: message,
+            read: false
+          });
+
+        if (error) {
+          showToast('❌ Failed to send: ' + error.message, 'fa-exclamation-circle');
+          return;
+        }
+
+        showToast('✅ Your message has been sent to the admin.', 'fa-paper-plane');
+        closeMessageAdmin();
+      });
+
       // Expose functions globally
       window.openMpesa = openMpesa;
       window.openCrud = openCrud;
@@ -3135,6 +3213,7 @@
           closeModal('#registerModal');
           closeModal('#forgotModal');
           closeMpesa();
+          closeMessageAdmin();
         }
       });
 
@@ -3175,7 +3254,7 @@
         app.classList.remove('visible');
       });
 
-      console.log('🚀 RentalPro with Subscription Management, Notifications, and Forgot Password.');
+      console.log('🚀 RentalPro with Subscription Management, Notifications, and Message Admin.');
     })();
   </script>
 </body>
