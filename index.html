@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* ===== CSS (same as before, plus minor additions for lease and type) ===== */
+    /* ===== CSS (same as before, plus additions for announcements) ===== */
     :root {
       --kenya-green: #1a5c2a;
       --kenya-red: #a81010;
@@ -338,6 +338,8 @@
     .btn-dismiss:hover { background: var(--kenya-red); color: #fff; border-color: var(--kenya-red); }
     .btn-lease { background: #1a5276; color: #fff; }
     .btn-lease:hover { background: #0f3b54; }
+    .btn-announce { background: #8e44ad; color: #fff; }
+    .btn-announce:hover { background: #732d91; }
 
     .buildings-grid, .units-grid {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
@@ -469,6 +471,30 @@
     .notif-panel .notif-item .notif-dismiss { flex-shrink: 0; align-self: center; }
     .notif-panel .notif-empty { text-align: center; padding: 20px; color: var(--text-muted); }
     .notif-panel .notif-empty i { font-size: 32px; opacity: 0.2; margin-bottom: 8px; }
+
+    /* ===== ANNOUNCEMENTS ===== */
+    .announcement-panel {
+      background: var(--bg-card); border-radius: var(--radius);
+      border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);
+      padding: 20px 24px; margin-top: 16px;
+    }
+    .announcement-panel .announcement-item {
+      display: flex; align-items: start; gap: 14px;
+      padding: 12px 0; border-bottom: 1px solid var(--border-light);
+    }
+    .announcement-panel .announcement-item:last-child { border-bottom: none; }
+    .announcement-panel .announcement-item .announce-icon {
+      font-size: 20px; width: 32px; text-align: center; flex-shrink: 0; margin-top: 2px;
+      color: var(--kenya-gold);
+    }
+    .announcement-panel .announcement-item .announce-content { flex: 1; }
+    .announcement-panel .announcement-item .announce-content .msg { font-size: 14px; color: var(--text-secondary); }
+    .announcement-panel .announcement-item .announce-content .meta {
+      font-size: 11px; color: var(--text-muted); margin-top: 4px;
+    }
+    .announcement-panel .announcement-item .announce-dismiss { flex-shrink: 0; align-self: center; }
+    .announcement-panel .announce-empty { text-align: center; padding: 20px; color: var(--text-muted); }
+    .announcement-panel .announce-empty i { font-size: 32px; opacity: 0.2; margin-bottom: 8px; }
 
     /* ===== PLAN SELECTION ===== */
     .plan-grid {
@@ -778,12 +804,17 @@
           <p class="greeting" id="dashboardSub">Welcome back.</p>
         </div>
 
-        <!-- Message Admin Button (visible to all) -->
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
-          <button class="btn btn-gold" id="messageAdminBtn"><i class="fas fa-envelope"></i> Message Admin</button>
+        <!-- ===== Message Admin Button (OWNER ONLY) ===== -->
+        <div id="messageAdminContainer" style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+          <!-- Hidden by default, shown only if role === 'owner' -->
         </div>
 
-        <!-- Notification Panel (owner only) -->
+        <!-- ===== ANNOUNCEMENTS PANEL (ALL USERS) ===== -->
+        <div id="announcementPanelWrapper">
+          <!-- Rendered by JavaScript -->
+        </div>
+
+        <!-- ===== NOTIFICATION PANEL (OWNER ONLY) ===== -->
         <div id="notificationPanelWrapper"></div>
 
         <div class="stats-grid" id="statsGrid"></div>
@@ -960,7 +991,7 @@
     </div>
   </div>
 
-  <!-- ===== MESSAGE ADMIN MODAL ===== -->
+  <!-- ===== MESSAGE ADMIN MODAL (OWNER ONLY) ===== -->
   <div class="modal-overlay" id="messageAdminModal">
     <div class="modal-box">
       <button class="modal-close" id="closeMessageAdminModal">&times;</button>
@@ -976,6 +1007,22 @@
           <textarea id="msgContent" rows="5" placeholder="Write your message here…" required></textarea>
         </div>
         <button type="submit" class="btn btn-gold w-full"><i class="fas fa-paper-plane"></i> Send Message</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== NEW: POST ANNOUNCEMENT MODAL (OWNER & CARETAKER) ===== -->
+  <div class="modal-overlay" id="announcementModal">
+    <div class="modal-box">
+      <button class="modal-close" id="closeAnnouncementModal">&times;</button>
+      <h2><i class="fas fa-bullhorn" style="color:var(--kenya-gold);"></i> Post Announcement</h2>
+      <p class="modal-sub">This announcement will be visible to all residents (tenants, caretakers, and owners) of your company.</p>
+      <form id="announcementForm">
+        <div class="form-group">
+          <label>Message</label>
+          <textarea id="announcementMessage" rows="5" placeholder="Write your announcement here…" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-announce w-full"><i class="fas fa-bullhorn"></i> Post Announcement</button>
       </form>
     </div>
   </div>
@@ -1016,6 +1063,7 @@
       let allUsers = [];
       let allQueries = [];
       let allNotifications = [];
+      let allAnnouncements = []; // will store announcements not yet read by this user
 
       // ================================================================
       // DOM REFS
@@ -1103,7 +1151,14 @@
       const msgName = $('#msgName');
       const msgContent = $('#msgContent');
       const closeMessageAdminBtn = $('#closeMessageAdminModal');
-      const messageAdminBtn = $('#messageAdminBtn');
+      const messageAdminContainer = $('#messageAdminContainer');
+
+      // Announcement elements
+      const announcementModal = $('#announcementModal');
+      const announcementForm = $('#announcementForm');
+      const announcementMessage = $('#announcementMessage');
+      const closeAnnouncementBtn = $('#closeAnnouncementModal');
+      const announcementPanelWrapper = $('#announcementPanelWrapper');
 
       // ================================================================
       // TOAST
@@ -1486,6 +1541,79 @@
         } else {
           allNotifications = await fetchNotifications();
           renderNotificationPanel();
+        }
+      }
+
+      // ================================================================
+      // ANNOUNCEMENTS
+      // ================================================================
+      async function fetchAnnouncements() {
+        if (!currentCompany || !currentUser) return;
+        const companyId = currentCompany.id;
+        const userId = currentUser.id;
+
+        // Get all announcements for this company
+        const { data: allAnn, error: annError } = await supabase
+          .from('announcements')
+          .select('*')
+          .eq('company_id', companyId)
+          .order('created_at', { ascending: false });
+
+        if (annError) {
+          console.error('Fetch announcements error:', annError);
+          return;
+        }
+
+        // Get read receipts for this user
+        const { data: reads, error: readError } = await supabase
+          .from('announcement_reads')
+          .select('announcement_id')
+          .eq('user_id', userId);
+
+        if (readError) {
+          console.error('Fetch read receipts error:', readError);
+        }
+
+        const readIds = (reads || []).map(r => r.announcement_id);
+        // Filter out those already read
+        allAnnouncements = allAnn.filter(a => !readIds.includes(a.id));
+        renderAnnouncements();
+      }
+
+      async function markAnnouncementRead(announcementId) {
+        if (!currentUser) return;
+        const { error } = await supabase
+          .from('announcement_reads')
+          .insert({
+            announcement_id: announcementId,
+            user_id: currentUser.id
+          });
+        if (error) {
+          showToast('❌ Could not mark as read: ' + error.message, 'fa-exclamation-circle');
+        } else {
+          // Remove from local list
+          allAnnouncements = allAnnouncements.filter(a => a.id !== announcementId);
+          renderAnnouncements();
+          // Also update the panel count (optional)
+        }
+      }
+
+      async function postAnnouncement(message) {
+        if (!currentUser || !currentCompany) return;
+        const { error } = await supabase
+          .from('announcements')
+          .insert({
+            company_id: currentCompany.id,
+            author_id: currentUser.id,
+            author_name: currentUser.name,
+            message: message
+          });
+        if (error) {
+          showToast('❌ Failed to post: ' + error.message, 'fa-exclamation-circle');
+        } else {
+          showToast('📢 Announcement posted!', 'fa-bullhorn');
+          // Re-fetch to show new one (it won't be read yet)
+          await fetchAnnouncements();
         }
       }
 
@@ -2111,6 +2239,65 @@
       }
 
       // ================================================================
+      // RENDER: ANNOUNCEMENTS (ALL USERS)
+      // ================================================================
+      function renderAnnouncements() {
+        const wrapper = announcementPanelWrapper;
+        if (!currentUser) return;
+
+        // Show "Post Announcement" button for owners and caretakers
+        const canPost = (currentUser.role === 'owner' || currentUser.role === 'caretaker');
+        const postButtonHtml = canPost ?
+          `<div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+             <button class="btn btn-announce btn-sm" id="postAnnouncementBtn"><i class="fas fa-bullhorn"></i> Post Announcement</button>
+           </div>` :
+          '';
+
+        if (allAnnouncements.length === 0) {
+          wrapper.innerHTML = `
+            <div class="announcement-panel">
+              <h4 style="font-size:16px; font-weight:600; margin-bottom:12px;"><i class="fas fa-bullhorn" style="color:var(--kenya-gold);"></i> Announcements</h4>
+              ${postButtonHtml}
+              <div class="announce-empty"><i class="fas fa-bullhorn"></i><p>No announcements</p></div>
+            </div>
+          `;
+          // Attach event to the button if exists
+          const btn = document.getElementById('postAnnouncementBtn');
+          if (btn) btn.addEventListener('click', openAnnouncementModal);
+          return;
+        }
+
+        let html = `
+          <div class="announcement-panel">
+            <h4 style="font-size:16px; font-weight:600; margin-bottom:12px;"><i class="fas fa-bullhorn" style="color:var(--kenya-gold);"></i> Announcements (${allAnnouncements.length})</h4>
+            ${postButtonHtml}
+        `;
+        allAnnouncements.forEach(a => {
+          html += `
+            <div class="announcement-item">
+              <div class="announce-icon"><i class="fas fa-bullhorn"></i></div>
+              <div class="announce-content">
+                <div class="msg">${a.message}</div>
+                <div class="meta">Posted by ${a.author_name} · ${timeAgo(a.created_at)}</div>
+              </div>
+              <div class="announce-dismiss">
+                <button class="btn btn-dismiss btn-sm" onclick="markAnnouncementRead('${a.id}')"><i class="fas fa-check"></i> Mark as Read</button>
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+        wrapper.innerHTML = html;
+
+        // Attach event to the post button (if exists)
+        const btn = document.getElementById('postAnnouncementBtn');
+        if (btn) btn.addEventListener('click', openAnnouncementModal);
+
+        // Re-bind the onclick functions (since we used inline onclick, they are global)
+        // The functions are already exposed globally via window.
+      }
+
+      // ================================================================
       // RENDER: NOTIFICATION PANEL (OWNER ONLY)
       // ================================================================
       function renderNotificationPanel() {
@@ -2320,6 +2507,14 @@
         const isTenant = currentUser.role === 'tenant';
         const { buildings, units, payments, users } = await getCompanyData();
 
+        // Show/hide Message Admin button
+        if (isOwner) {
+          messageAdminContainer.innerHTML = `<button class="btn btn-gold" id="messageAdminBtn"><i class="fas fa-envelope"></i> Message Admin</button>`;
+          document.getElementById('messageAdminBtn')?.addEventListener('click', openMessageAdmin);
+        } else {
+          messageAdminContainer.innerHTML = '';
+        }
+
         // Check subscription days – only show to owner
         let subMsg = 'Welcome back!';
         if (isOwner && currentCompany.subscription_end) {
@@ -2333,6 +2528,9 @@
         // Notifications – only for owner
         allNotifications = await fetchNotifications();
         renderNotificationPanel();
+
+        // Announcements – for all users
+        await fetchAnnouncements();
 
         // Stats
         const occupied = units.filter(u => u.status === 'occupied').length;
@@ -3077,6 +3275,36 @@
       };
 
       // ================================================================
+      // ANNOUNCEMENT MODAL
+      // ================================================================
+      function openAnnouncementModal() {
+        if (!currentUser) return showToast('❌ Please log in.', 'fa-exclamation-circle');
+        // Only owners and caretakers can post
+        if (currentUser.role !== 'owner' && currentUser.role !== 'caretaker') {
+          return showToast('❌ Only owners and caretakers can post announcements.', 'fa-exclamation-circle');
+        }
+        announcementMessage.value = '';
+        announcementModal.classList.add('active');
+      }
+
+      function closeAnnouncementModal() {
+        announcementModal.classList.remove('active');
+      }
+
+      closeAnnouncementBtn.addEventListener('click', closeAnnouncementModal);
+      announcementModal.addEventListener('click', (e) => {
+        if (e.target === announcementModal) closeAnnouncementModal();
+      });
+
+      announcementForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msg = announcementMessage.value.trim();
+        if (!msg) return showToast('❌ Please write a message.', 'fa-exclamation-circle');
+        await postAnnouncement(msg);
+        closeAnnouncementModal();
+      });
+
+      // ================================================================
       // REAL-TIME SUBSCRIPTIONS
       // ================================================================
       function subscribeToChanges() {
@@ -3091,6 +3319,8 @@
           .on('postgres_changes', { event: '*', schema: 'public', table: 'signup_keys' }, () => renderAll())
           .on('postgres_changes', { event: '*', schema: 'public', table: 'user_notifications' }, () => renderAll())
           .on('postgres_changes', { event: '*', schema: 'public', table: 'subscription_requests' }, () => renderAll())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => renderAll())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'announcement_reads' }, () => renderAll())
           .subscribe();
       }
 
@@ -3277,6 +3507,9 @@
       // ===== Message Admin Modal Logic =====
       function openMessageAdmin() {
         if (!currentUser) return showToast('❌ Please log in.', 'fa-exclamation-circle');
+        if (currentUser.role !== 'owner') {
+          return showToast('❌ Only owners can message admin.', 'fa-exclamation-circle');
+        }
         msgName.value = currentUser.name || 'Client';
         msgContent.value = '';
         messageAdminModal.classList.add('active');
@@ -3286,7 +3519,6 @@
         messageAdminModal.classList.remove('active');
       }
 
-      messageAdminBtn.addEventListener('click', openMessageAdmin);
       closeMessageAdminBtn.addEventListener('click', closeMessageAdmin);
       messageAdminModal.addEventListener('click', (e) => {
         if (e.target === messageAdminModal) closeMessageAdmin();
@@ -3332,6 +3564,7 @@
       window.generateSignupKey = generateSignupKey;
       window.requestSubscriptionPlan = requestSubscriptionPlan;
       window.dismissNotification = dismissNotification;
+      window.markAnnouncementRead = markAnnouncementRead;
       window.showToast = showToast;
 
       // ================================================================
@@ -3345,6 +3578,7 @@
           closeModal('#forgotModal');
           closeMpesa();
           closeMessageAdmin();
+          closeAnnouncementModal();
         }
       });
 
@@ -3385,7 +3619,7 @@
         app.classList.remove('visible');
       });
 
-      console.log('🚀 RentalPro with Unit Type, Lease Upload, and Dismissible Notifications.');
+      console.log('🚀 RentalPro with Announcements, Dismissible Notifications, and Role‑restricted Messaging.');
     })();
   </script>
 </body>
